@@ -4,22 +4,24 @@ import com.example.codecompileservice.entity.Testcase;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class CppExecutor {
-    public String execute(String code, List<Testcase> testcases) throws Exception {
+    public List<String> execute(String code, List<Testcase> testcases) throws Exception {
         // 사용자 소스 코드를 파일로 저장
         new FileWriter("Cpp_code.cpp").write(code);
 
         ProcessBuilder gccProcessBuilder  = new ProcessBuilder("g++", "Cpp_code.cpp", "-o", "Cpp_code");
         Process gccProcess = gccProcessBuilder.start();
-        int gccExitCode = gccProcess.waitFor();
+        gccProcess.waitFor();
         ProcessBuilder processBuilder = new ProcessBuilder("./Cpp_code");
         Process process= null;
         BufferedWriter processInputWriter;
-        StringBuilder output = new StringBuilder();
+        List<String> output = new ArrayList<>();
         String line;
+        StringBuilder stringBuilder = new StringBuilder();
 
         for (Testcase testcase : testcases) {
             process = processBuilder.start();
@@ -33,12 +35,13 @@ public class CppExecutor {
             // 출력 읽기
             BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             while ((line = processOutputReader.readLine()) != null) {
-                output.append(line).append("\n");
+                stringBuilder.append(line).append("\n");
             }
+            output.add(stringBuilder.toString().strip());
         }
         // 프로세스 종료 대기
         process.waitFor();
 
-        return output.toString().strip();  // 프로세스의 출력 반환
+        return output;  // 프로세스의 출력 반환
     }
 }

@@ -5,11 +5,12 @@ import org.springframework.stereotype.Component;
 
 import javax.tools.ToolProvider;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class JavaExecutor {
-    public String execute(String code, List<Testcase> testcases) throws Exception {
+    public List<String> execute(String code, List<Testcase> testcases) throws Exception {
         // 사용자 소스 코드를 파일로 저장
         new FileWriter("Main.java").write(code);
         // 컴파일
@@ -23,8 +24,9 @@ public class JavaExecutor {
         ProcessBuilder processBuilder = new ProcessBuilder("java", "Main");
         Process process = null;
         BufferedWriter processInputWriter;
-        StringBuilder output = new StringBuilder();
+        List<String> output = new ArrayList<>();
         String line;
+        StringBuilder stringBuilder = new StringBuilder();
 
         // 입력을 프로세스의 System.in으로 전달
         for (Testcase testcase : testcases) {
@@ -39,13 +41,14 @@ public class JavaExecutor {
             // 출력 읽기
             BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             while ((line = processOutputReader.readLine()) != null) {
-                output.append(line).append("\n");
+                stringBuilder.append(line).append("\n");
             }
+            output.add(stringBuilder.toString().strip());
         }
 
         // 프로세스 종료 대기
         process.waitFor();
 
-        return output.toString().strip();  // 프로세스의 출력 반환
+        return output;  // 프로세스의 출력 반환
     }
 }
