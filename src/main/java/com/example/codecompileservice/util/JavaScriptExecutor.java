@@ -20,9 +20,11 @@ public class JavaScriptExecutor {
         BufferedWriter processInputWriter;
         List<String> output = new ArrayList<>();
         String line;
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder stringBuilder;
 
+        // 입력을 프로세스의 System.in으로 전달
         for (Testcase testcase : testcases) {
+            stringBuilder = new StringBuilder();
             process = processBuilder.start();
             processInputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
             for (String input : testcase.getInput()) {
