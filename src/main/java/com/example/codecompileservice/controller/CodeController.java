@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-public class CodeController {
+public class CodeController implements CodeControllerDocs{
     private final CodeService codeService;
 
     @PostMapping("/code")
