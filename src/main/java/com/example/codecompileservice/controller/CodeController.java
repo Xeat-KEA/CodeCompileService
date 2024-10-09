@@ -2,6 +2,7 @@ package com.example.codecompileservice.controller;
 
 import com.example.codecompileservice.dto.CodeCompileInput;
 import com.example.codecompileservice.dto.CodeCompileOutput;
+import com.example.codecompileservice.dto.CodeSubmitOutput;
 import com.example.codecompileservice.entity.Code;
 import com.example.codecompileservice.global.BaseResponse;
 import com.example.codecompileservice.service.CodeService;
@@ -26,6 +27,11 @@ public class CodeController implements CodeControllerDocs{
     @PostMapping("/code/compile")
     public BaseResponse<CodeCompileOutput> compileCode(@RequestBody CodeCompileInput codeCompileInput) throws Exception {
         return codeService.codeCompile(codeCompileInput);
+    }
+
+    @PostMapping("/code/submit")
+    public BaseResponse<CodeSubmitOutput> submitCode(@RequestBody CodeCompileInput codeCompileInput) throws Exception {
+        return codeService.codeSubmit(codeCompileInput);
     }
 
 }
