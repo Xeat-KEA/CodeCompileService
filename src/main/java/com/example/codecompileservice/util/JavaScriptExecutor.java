@@ -11,7 +11,9 @@ import java.util.List;
 public class JavaScriptExecutor {
     public List<String> execute(String code, List<Testcase> testcases) throws Exception {
         // 사용자 소스 코드를 파일로 저장
-        new FileWriter("code.js").write(code);
+        try (FileWriter writer = new FileWriter("code.js")) {
+            writer.write(code);
+        }
         // Node.js 프로세스를 실행하고 JavaScript 파일 실행
         ProcessBuilder processBuilder = new ProcessBuilder("node", "code.js");
         Process process = null;

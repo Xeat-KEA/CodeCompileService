@@ -11,7 +11,9 @@ import java.util.List;
 public class PythonExecutor {
     public List<String> execute(String code, List<Testcase> testcases) throws Exception {
         // 사용자 소스 코드를 파일로 저장
-        new FileWriter("code.py").write(code);
+        try (FileWriter writer = new FileWriter("code.py")) {
+            writer.write(code);
+        }
         ProcessBuilder processBuilder = new ProcessBuilder("python", "code.py");
         Process process = null;
         BufferedWriter processInputWriter;

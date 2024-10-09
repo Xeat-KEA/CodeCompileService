@@ -12,7 +12,9 @@ import java.util.List;
 public class JavaExecutor {
     public List<String> execute(String code, List<Testcase> testcases) throws Exception {
         // 사용자 소스 코드를 파일로 저장
-        new FileWriter("Main.java").write(code);
+        try (FileWriter writer = new FileWriter("Main.java")) {
+            writer.write(code);
+        }
         // 컴파일
         int result = ToolProvider.getSystemJavaCompiler().run(null, null, null, "Main.java");
 

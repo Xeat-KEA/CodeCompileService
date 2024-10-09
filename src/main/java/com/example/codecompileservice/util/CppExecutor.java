@@ -11,8 +11,9 @@ import java.util.List;
 public class CppExecutor {
     public List<String> execute(String code, List<Testcase> testcases) throws Exception {
         // 사용자 소스 코드를 파일로 저장
-        new FileWriter("Cpp_code.cpp").write(code);
-
+        try (FileWriter writer = new FileWriter("Cpp_code.cpp")) {
+            writer.write(code);
+        }
         ProcessBuilder gccProcessBuilder  = new ProcessBuilder("g++", "Cpp_code.cpp", "-o", "Cpp_code");
         Process gccProcess = gccProcessBuilder.start();
         gccProcess.waitFor();

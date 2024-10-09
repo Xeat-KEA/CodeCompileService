@@ -11,7 +11,9 @@ import java.util.List;
 public class CExecutor {
     public List<String> execute(String code, List<Testcase> testcases) throws Exception {
         // 사용자 소스 코드를 파일로 저장
-        new FileWriter("code.c").write(code);
+        try (FileWriter writer = new FileWriter("code.c")) {
+            writer.write(code);
+        }
         ProcessBuilder gccProcessBuilder = new ProcessBuilder("gcc", "code.c", "-o", "C_code");
         Process gccProcess = gccProcessBuilder.start();
         int gccExitCode = gccProcess.waitFor();
