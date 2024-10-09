@@ -1,5 +1,7 @@
 package com.example.codecompileservice.controller;
 
+import com.example.codecompileservice.dto.CodeCompileInput;
+import com.example.codecompileservice.dto.CodeCompileOutput;
 import com.example.codecompileservice.entity.Code;
 import com.example.codecompileservice.global.BaseResponse;
 import com.example.codecompileservice.service.CodeService;
@@ -19,6 +21,11 @@ public class CodeController {
     @GetMapping("/code/{id}")
     public BaseResponse<Code> findCode(@PathVariable Integer id) {
         return codeService.codeFind(id);
+    }
+
+    @PostMapping("/code/compile")
+    public BaseResponse<CodeCompileOutput> compileCode(@RequestBody CodeCompileInput codeCompileInput) throws Exception {
+        return codeService.codeCompile(codeCompileInput);
     }
 
 }
