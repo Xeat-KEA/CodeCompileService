@@ -1,10 +1,24 @@
 package com.example.codecompileservice.controller;
 
+import com.example.codecompileservice.entity.Code;
+import com.example.codecompileservice.global.BaseResponse;
+import com.example.codecompileservice.service.CodeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 public class CodeController {
+    private final CodeService codeService;
+
+    @PostMapping("/code")
+    public BaseResponse<Code> saveCode(@RequestBody Code code) {
+        return codeService.codeSave(code);
+    }
+
+    @GetMapping("/code/{id}")
+    public BaseResponse<Code> findCode(@PathVariable Integer id) {
+        return codeService.codeFind(id);
+    }
 
 }
