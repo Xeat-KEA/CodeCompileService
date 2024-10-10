@@ -7,5 +7,5 @@ import java.util.List;
 @Data
 public class Testcase {
     private final List<String> input;
-    private final List<String> output;
+    private final String output;
 }

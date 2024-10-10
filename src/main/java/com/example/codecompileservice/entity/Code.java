@@ -4,11 +4,17 @@ import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 
 import java.util.List;
 
 @Entity
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Code {
     @Id
     private String id;
