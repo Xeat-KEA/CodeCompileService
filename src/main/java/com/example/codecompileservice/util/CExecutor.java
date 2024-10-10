@@ -1,13 +1,12 @@
 package com.example.codecompileservice.util;
 
 import com.example.codecompileservice.entity.Testcase;
-import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Deprecated
 public class CExecutor {
     public List<String> execute(String code, List<Testcase> testcases) throws Exception {
         // 사용자 소스 코드를 파일로 저장
