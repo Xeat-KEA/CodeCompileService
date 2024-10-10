@@ -21,4 +21,13 @@ public class Code {
     @Type(JsonType.class)
     @Column(columnDefinition = "json")
     private List<Testcase> testcases;
+
+    public Boolean grade(List<String> output) {
+        for (int i = 0; i < output.size(); i++) {
+            if (!output.get(i).equals(testcases.get(i).getOutput())) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

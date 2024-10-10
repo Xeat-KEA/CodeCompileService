@@ -19,7 +19,8 @@ public class SwaggerConfig {
     private Info apiInfo() {
         return new Info()
                 .title("코딩테스트 API")
-                .description("")
+                .description("1번문제: https://www.acmicpc.net/problem/1753 2번문제: https://www.acmicpc.net/problem/2606 " +
+                        "3번문제: https://www.acmicpc.net/problem/1152 4번문제: https://www.acmicpc.net/problem/10815")
                 .version("1.0.0");
     }
 }
