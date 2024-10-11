@@ -89,11 +89,23 @@ public class CodeExecutor {
                 stringBuilder.append(line).append("\n");
             }
             output.add(stringBuilder.toString().strip());
+            processOutputReader.close();
         }
 
         // 프로세스 종료 대기
         process.waitFor();
-
+        deleteFile(filename, language);
         return output;  // 프로세스의 출력 반환
+    }
+
+    private void deleteFile(String filename, Language language) {
+        if (language == PYTHON || language == JS) {
+            new File(filename).delete();
+        } else {
+            new File(filename + language.getExtension()).delete();
+            if (language == JAVA) {
+                new File(filename + ".class").delete();
+            }
+        }
     }
 }
