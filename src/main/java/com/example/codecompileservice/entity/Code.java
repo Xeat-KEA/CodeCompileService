@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class Code {
     @Id
-    private String id;
+    private Integer id;
     @Type(JsonType.class)
     @Column(columnDefinition = "json")
     private List<Testcase> testcases;
