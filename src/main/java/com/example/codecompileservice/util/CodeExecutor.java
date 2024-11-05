@@ -43,7 +43,7 @@ public class CodeExecutor {
             try (FileWriter writer = new FileWriter(filename)) {
                 writer.write(code);
             }
-            processBuilder = new ProcessBuilder("python", filename);
+            processBuilder = new ProcessBuilder("python3", filename);
         } else if (language == C) {
             filename = UUID.randomUUID().toString();
             try (FileWriter writer = new FileWriter(filename + C.getExtension())) {
