@@ -77,11 +77,13 @@ public class CodeExecutor {
             stringBuilder = new StringBuilder();
             process = processBuilder.start();
             processInputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-            for (String input : testcase.getInput()) {
-                processInputWriter.write(input);  // 입력값을 전달
-                processInputWriter.newLine();  // 줄바꿈 추가
-                processInputWriter.flush();
-            }
+            processInputWriter.write(testcase.getInput());  // 입력값을 전달
+            processInputWriter.newLine(); // 줄바꿈 추가
+//            for (String input : testcase.getInput()) {
+//                processInputWriter.write(input);  // 입력값을 전달
+//                processInputWriter.newLine();  // 줄바꿈 추가
+//                processInputWriter.flush();
+//            }
             processInputWriter.close();
             // 출력 읽기
             BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
