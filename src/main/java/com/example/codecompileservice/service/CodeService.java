@@ -2,7 +2,6 @@ package com.example.codecompileservice.service;
 
 import com.example.codecompileservice.dto.CodeCompileInput;
 import com.example.codecompileservice.dto.CodeCompileOutput;
-import com.example.codecompileservice.dto.CodeHistoryDto;
 import com.example.codecompileservice.dto.CodeSubmitOutput;
 import com.example.codecompileservice.entity.Code;
 import com.example.codecompileservice.global.BaseResponse;
