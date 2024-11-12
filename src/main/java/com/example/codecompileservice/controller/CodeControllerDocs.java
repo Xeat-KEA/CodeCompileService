@@ -15,35 +15,20 @@ public interface CodeControllerDocs {
     @Operation(summary = "문제 저장 api", description = """
             https://www.acmicpc.net/problem/1152 이 문제는
             {
-                "input": [
-                    "The Curious Case of Benjamin Button"
-                ],
+                "input": "The Curious Case of Benjamin Button",
                 "output": "6"
             },
             {
-                "input": [
-                    " The first character is a blank"
-                ],
+                "input": " The first character is a blank",
                 "output": "6"
             },
             {
-                "input": [
-                    "The last character is a blank "
-                ],
+                "input": "The last character is a blank ",
                 "output": "6"
             }
             https://www.acmicpc.net/problem/1753 이 문제는
             {
-                "input": [
-                    "5 6",
-                    "1",
-                    "5 1 1",
-                    "1 2 2",
-                    "1 3 3",
-                    "2 3 4",
-                    "2 4 5",
-                    "3 4 6"
-                ],
+                "input": "5 6\\n1\\n5 1 1\\n"1 2 2\\n1 3 3\\n2 3 4\\n2 4 5\\n3 4 6",
                 "output": "0\\n2\\n3\\n7\\nINF"
             } 이런식으로 저장
             """)
@@ -57,4 +42,7 @@ public interface CodeControllerDocs {
 
     @Operation(summary = "코드 제출", description = "정답인지 아닌지 리턴")
     BaseResponse<CodeSubmitOutput> submitCode(@RequestBody CodeCompileInput codeCompileInput) throws Exception;
+
+    @Operation(summary = "문제 삭제")
+    BaseResponse<Integer> removeCode(@PathVariable Integer id);
 }

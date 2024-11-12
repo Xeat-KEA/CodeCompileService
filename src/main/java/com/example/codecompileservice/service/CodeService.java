@@ -17,6 +17,7 @@ import java.util.Base64;
 public class CodeService {
     private final CodeRepository codeRepository;
     private final CodeExecutor codeExecutor;
+//    private final CodeBankServiceClient codeBankServiceClient;
 
     public BaseResponse<Code> codeSave(Code code) {
         return BaseResponse.success(codeRepository.save(code));
@@ -28,6 +29,7 @@ public class CodeService {
 
     public BaseResponse<CodeCompileOutput> codeCompile(CodeCompileInput codeCompileInput) throws Exception {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
+//        codeBankServiceClient.updateHistory(codeCompileInput.getCodeId(), new CodeHistoryDto());
         return BaseResponse.success(new CodeCompileOutput(codeExecutor
                 .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases())));
     }
@@ -36,5 +38,10 @@ public class CodeService {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
         return BaseResponse.success(new CodeSubmitOutput(code.grade(codeExecutor
                 .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases()))));
+    }
+
+    public BaseResponse<Integer> codeRemove(Integer id) {
+        codeRepository.findById(id).ifPresent(codeRepository::delete);
+        return BaseResponse.success(id);
     }
 }
