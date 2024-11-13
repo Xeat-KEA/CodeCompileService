@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(originPatterns = "*", allowedHeaders = "*", allowCredentials = "true")
+//@CrossOrigin(originPatterns = "*", allowedHeaders = "*", allowCredentials = "true")
 public class CodeController implements CodeControllerDocs{
     private final CodeService codeService;
 
