@@ -2,6 +2,7 @@ package com.example.codecompileservice.util;
 
 import com.example.codecompileservice.entity.Testcase;
 import com.example.codecompileservice.exception.CompileException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.tools.ToolProvider;
@@ -14,6 +15,7 @@ import static com.example.codecompileservice.util.Language.*;
 import static java.nio.charset.StandardCharsets.*;
 
 @Component
+@Slf4j
 public class CodeExecutor {
     public List<String> execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
         ProcessBuilder processBuilder;
@@ -66,6 +68,7 @@ public class CodeExecutor {
             }
             ProcessBuilder gccProcessBuilder = new ProcessBuilder("g++", filename + CPP.getExtension(), "-o", filename);
             Process gccProcess = gccProcessBuilder.start();
+            log.info(gccProcess.errorReader().readLine());
             gccProcess.waitFor();
             processBuilder = new ProcessBuilder("./" + filename);
         } else {
