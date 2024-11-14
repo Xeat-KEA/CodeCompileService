@@ -7,17 +7,19 @@ import org.springframework.stereotype.Component;
 
 import javax.tools.ToolProvider;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static com.example.codecompileservice.util.Language.*;
+import static java.nio.charset.StandardCharsets.*;
 
 @Component
 @RequiredArgsConstructor
 public class CodeExecutor {
-    private final PrintStream outPrintStream = new PrintStream(new ByteArrayOutputStream());
-    private final PrintStream errPrintStream = new PrintStream(new ByteArrayOutputStream());
+    private final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream errStream = new ByteArrayOutputStream();
 
     public List<String> execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
         ProcessBuilder processBuilder;
@@ -32,9 +34,9 @@ public class CodeExecutor {
             }
 
             // 컴파일
-            if (ToolProvider.getSystemJavaCompiler().run(null, outPrintStream, errPrintStream, filename + JAVA.getExtension()) != 0) {
+            if (ToolProvider.getSystemJavaCompiler().run(null, outStream, errStream, filename + JAVA.getExtension()) != 0) {
                 deleteFile(filename, language);
-                output.add(outPrintStream + "\n" + errPrintStream);
+                output.add(outStream.toString(UTF_8) + "\n" + errStream.toString(UTF_8));
                 return output;
             }
             // 컴파일된 클래스 파일 실행
@@ -98,13 +100,20 @@ public class CodeExecutor {
             while ((line = processOutputReader.readLine()) != null) {
                 stringBuilder.append(line).append("\n");
             }
-            // 에러 출력 읽기
-            while ((line = processErrorReader.readLine()) != null) {
-                stringBuilder.append(line).append("\n");
-            }
-            processErrorReader.close();
-            output.add(stringBuilder.toString().strip());
             processOutputReader.close();
+            // 에러 출력 읽기
+            if ((line = processErrorReader.readLine()) != null) {
+                stringBuilder.append(line).append("\n");
+                while ((line = processErrorReader.readLine()) != null) {
+                    stringBuilder.append(line).append("\n");
+                }
+                processErrorReader.close();
+                output.add(stringBuilder.toString().strip());
+                process.waitFor();
+                deleteFile(filename, language);
+                return output;
+            }
+            output.add(stringBuilder.toString().strip());
         }
 
         // 프로세스 종료 대기
