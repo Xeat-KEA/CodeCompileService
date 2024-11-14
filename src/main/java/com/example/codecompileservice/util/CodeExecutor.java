@@ -20,6 +20,8 @@ public class CodeExecutor {
     public List<String> execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
         ProcessBuilder processBuilder;
         String filename;
+        String line;
+        StringBuilder stringBuilder = new StringBuilder();
         List<String> output = new ArrayList<>();
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errStream = new ByteArrayOutputStream();
@@ -68,12 +70,10 @@ public class CodeExecutor {
             }
             ProcessBuilder gccProcessBuilder = new ProcessBuilder("g++", filename + CPP.getExtension(), "-o", filename);
             Process gccProcess = gccProcessBuilder.start();
-            if (gccProcess.errorReader().readLine() != null) {
-                log.info("에러없음에러없음에러없음에러없음에러없음에러없음");
-            } else {
-                log.info("에러있음에러있음에러있음에러있음에러있음에러있음");
+            while ((line = gccProcess.errorReader().readLine()) != null) {
+                stringBuilder.append(line).append("\n");
             }
-
+            log.info("awefekwefkj:{}", stringBuilder);
             gccProcess.waitFor();
             processBuilder = new ProcessBuilder("./" + filename);
         } else {
@@ -82,8 +82,6 @@ public class CodeExecutor {
 
         Process process = null;
         BufferedWriter processInputWriter;
-        String line;
-        StringBuilder stringBuilder;
 
         // 입력을 프로세스의 System.in으로 전달
         for (Testcase testcase : testcases) {
