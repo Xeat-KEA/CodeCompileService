@@ -23,9 +23,9 @@ public class CodeExecutor {
         String line;
         StringBuilder stringBuilder = new StringBuilder();
         List<String> output = new ArrayList<>();
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        ByteArrayOutputStream errStream = new ByteArrayOutputStream();
         if (language == JAVA) {
+            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+            ByteArrayOutputStream errStream = new ByteArrayOutputStream();
             // 사용자 소스 코드를 파일로 저장
             filename = "M" + UUID.randomUUID().toString().replace("-", "");
             code = code.replaceFirst("Main", filename);
@@ -61,6 +61,15 @@ public class CodeExecutor {
             }
             ProcessBuilder gccProcessBuilder = new ProcessBuilder("gcc", filename + C.getExtension(), "-o", filename);
             Process gccProcess = gccProcessBuilder.start();
+            try (BufferedReader errorReader = gccProcess.errorReader()) {
+                if (errorReader.readLine() != null) {
+                    while ((line = errorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    output.add(stringBuilder.toString());
+                    return output;
+                }
+            }
             gccProcess.waitFor();
             processBuilder = new ProcessBuilder("./" + filename);
         } else if (language == CPP) {
@@ -68,15 +77,18 @@ public class CodeExecutor {
             try (FileWriter writer = new FileWriter(filename + CPP.getExtension())) {
                 writer.write(code);
             }
-            ProcessBuilder gccProcessBuilder = new ProcessBuilder("g++", filename + CPP.getExtension(), "-o", filename);
-            Process gccProcess = gccProcessBuilder.start();
-//            if (gccProcess.errorReader().readLine() != null) {
-                while ((line = gccProcess.errorReader().readLine()) != null) {
-                    stringBuilder.append(line).append("\n");
+            ProcessBuilder gppProcessBuilder = new ProcessBuilder("g++", filename + CPP.getExtension(), "-o", filename);
+            Process gppProcess = gppProcessBuilder.start();
+            try (BufferedReader errorReader = gppProcess.errorReader()) {
+                if (errorReader.readLine() != null) {
+                    while ((line = errorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    output.add(stringBuilder.toString());
+                    return output;
                 }
-//            }
-            log.info(stringBuilder.toString());
-            gccProcess.waitFor();
+            }
+            gppProcess.waitFor();
             processBuilder = new ProcessBuilder("./" + filename);
         } else {
             throw new CompileException("지원되지 않는 언어");
