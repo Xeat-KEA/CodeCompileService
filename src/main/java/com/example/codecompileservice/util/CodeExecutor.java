@@ -70,11 +70,11 @@ public class CodeExecutor {
             }
             ProcessBuilder gccProcessBuilder = new ProcessBuilder("g++", filename + CPP.getExtension(), "-o", filename);
             Process gccProcess = gccProcessBuilder.start();
-            if (gccProcess.errorReader().readLine() != null) {
+//            if (gccProcess.errorReader().readLine() != null) {
                 while ((line = gccProcess.errorReader().readLine()) != null) {
                     stringBuilder.append(line).append("\n");
                 }
-            }
+//            }
             log.info(stringBuilder.toString());
             gccProcess.waitFor();
             processBuilder = new ProcessBuilder("./" + filename);
