@@ -2,6 +2,7 @@ package com.example.codecompileservice.util;
 
 import com.example.codecompileservice.entity.Testcase;
 import com.example.codecompileservice.exception.CompileException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.tools.ToolProvider;
@@ -13,10 +14,15 @@ import java.util.UUID;
 import static com.example.codecompileservice.util.Language.*;
 
 @Component
+@RequiredArgsConstructor
 public class CodeExecutor {
+    private final PrintStream outPrintStream = new PrintStream(new ByteArrayOutputStream());
+    private final PrintStream errPrintStream = new PrintStream(new ByteArrayOutputStream());
+
     public List<String> execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
         ProcessBuilder processBuilder;
         String filename;
+        List<String> output = new ArrayList<>();
         if (language == JAVA) {
             // 사용자 소스 코드를 파일로 저장
             filename = "M" + UUID.randomUUID().toString().replace("-", "");
@@ -26,8 +32,10 @@ public class CodeExecutor {
             }
 
             // 컴파일
-            if (ToolProvider.getSystemJavaCompiler().run(null, null, null, filename + JAVA.getExtension()) != 0) {
-                throw new CompileException("컴파일 오류");
+            if (ToolProvider.getSystemJavaCompiler().run(null, outPrintStream, errPrintStream, filename + JAVA.getExtension()) != 0) {
+                deleteFile(filename, language);
+                output.add(outPrintStream + "\n" + errPrintStream);
+                return output;
             }
             // 컴파일된 클래스 파일 실행
             processBuilder = new ProcessBuilder("java", filename);
@@ -68,7 +76,6 @@ public class CodeExecutor {
 
         Process process = null;
         BufferedWriter processInputWriter;
-        List<String> output = new ArrayList<>();
         String line;
         StringBuilder stringBuilder;
 
@@ -87,9 +94,15 @@ public class CodeExecutor {
             processInputWriter.close();
             // 출력 읽기
             BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             while ((line = processOutputReader.readLine()) != null) {
                 stringBuilder.append(line).append("\n");
             }
+            // 에러 출력 읽기
+            while ((line = processErrorReader.readLine()) != null) {
+                stringBuilder.append(line).append("\n");
+            }
+            processErrorReader.close();
             output.add(stringBuilder.toString().strip());
             processOutputReader.close();
         }
