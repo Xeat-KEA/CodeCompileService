@@ -75,7 +75,7 @@ public class CodeExecutor {
                     stringBuilder.append(line).append("\n");
                 }
             }
-            log.info(gccProcess.errorReader().readLine());
+            log.info(stringBuilder.toString());
             gccProcess.waitFor();
             processBuilder = new ProcessBuilder("./" + filename);
         } else {
