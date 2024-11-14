@@ -2,12 +2,10 @@ package com.example.codecompileservice.util;
 
 import com.example.codecompileservice.entity.Testcase;
 import com.example.codecompileservice.exception.CompileException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.tools.ToolProvider;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -16,15 +14,13 @@ import static com.example.codecompileservice.util.Language.*;
 import static java.nio.charset.StandardCharsets.*;
 
 @Component
-@RequiredArgsConstructor
 public class CodeExecutor {
-    private final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-    private final ByteArrayOutputStream errStream = new ByteArrayOutputStream();
-
     public List<String> execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
         ProcessBuilder processBuilder;
         String filename;
         List<String> output = new ArrayList<>();
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        ByteArrayOutputStream errStream = new ByteArrayOutputStream();
         if (language == JAVA) {
             // 사용자 소스 코드를 파일로 저장
             filename = "M" + UUID.randomUUID().toString().replace("-", "");
@@ -70,6 +66,12 @@ public class CodeExecutor {
             }
             ProcessBuilder gccProcessBuilder = new ProcessBuilder("g++", filename + CPP.getExtension(), "-o", filename);
             Process gccProcess = gccProcessBuilder.start();
+            // 컴파일
+            if (ToolProvider.getSystemJavaCompiler().run(null, outStream, errStream, filename + JAVA.getExtension()) != 0) {
+                deleteFile(filename, language);
+                output.add(outStream.toString(UTF_8) + "\n" + errStream.toString(UTF_8));
+                return output;
+            }
             gccProcess.waitFor();
             processBuilder = new ProcessBuilder("./" + filename);
         } else {
