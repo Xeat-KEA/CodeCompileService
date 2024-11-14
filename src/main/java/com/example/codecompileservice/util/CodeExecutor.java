@@ -66,12 +66,6 @@ public class CodeExecutor {
             }
             ProcessBuilder gccProcessBuilder = new ProcessBuilder("g++", filename + CPP.getExtension(), "-o", filename);
             Process gccProcess = gccProcessBuilder.start();
-            // 컴파일
-            if (ToolProvider.getSystemJavaCompiler().run(null, outStream, errStream, filename + JAVA.getExtension()) != 0) {
-                deleteFile(filename, language);
-                output.add(outStream.toString(UTF_8) + "\n" + errStream.toString(UTF_8));
-                return output;
-            }
             gccProcess.waitFor();
             processBuilder = new ProcessBuilder("./" + filename);
         } else {
@@ -103,7 +97,7 @@ public class CodeExecutor {
                 stringBuilder.append(line).append("\n");
             }
             processOutputReader.close();
-            // 에러 출력 읽기
+            // 에러 출력 있으면 읽고 바로 리턴
             if ((line = processErrorReader.readLine()) != null) {
                 stringBuilder.append(line).append("\n");
                 while ((line = processErrorReader.readLine()) != null) {
