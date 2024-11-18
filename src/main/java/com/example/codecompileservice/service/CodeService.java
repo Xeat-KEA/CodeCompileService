@@ -30,14 +30,15 @@ public class CodeService {
     public BaseResponse<CodeCompileOutput> codeCompile(CodeCompileInput codeCompileInput) throws Exception {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
 //        codeBankServiceClient.updateHistory(codeCompileInput.getCodeId(), new CodeHistoryDto());
-        return BaseResponse.success(new CodeCompileOutput(codeExecutor
-                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases())));
+        return BaseResponse.success(codeExecutor
+                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases()));
     }
 
     public BaseResponse<CodeSubmitOutput> codeSubmit(CodeCompileInput codeCompileInput) throws Exception {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
         return BaseResponse.success(new CodeSubmitOutput(code.grade(codeExecutor
-                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases()))));
+                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases())
+                .getResult())));
     }
 
     public BaseResponse<Integer> codeRemove(Integer id) {
