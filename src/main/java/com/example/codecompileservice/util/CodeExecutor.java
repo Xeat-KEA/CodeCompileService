@@ -1,8 +1,8 @@
 package com.example.codecompileservice.util;
 
+import com.example.codecompileservice.dto.CodeCompileOutput;
 import com.example.codecompileservice.entity.Testcase;
 import com.example.codecompileservice.exception.CompileException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.tools.ToolProvider;
@@ -15,9 +15,8 @@ import static com.example.codecompileservice.util.Language.*;
 import static java.nio.charset.StandardCharsets.*;
 
 @Component
-@Slf4j
 public class CodeExecutor {
-    public List<String> execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
+    public CodeCompileOutput execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
         ProcessBuilder processBuilder;
         String filename;
         String line;
@@ -37,7 +36,7 @@ public class CodeExecutor {
             if (ToolProvider.getSystemJavaCompiler().run(null, outStream, errStream, filename + JAVA.getExtension()) != 0) {
                 deleteFile(filename, language);
                 output.add(outStream.toString(UTF_8) + "\n" + errStream.toString(UTF_8));
-                return output;
+                return new CodeCompileOutput(0, output);
             }
             // 컴파일된 클래스 파일 실행
             processBuilder = new ProcessBuilder("java", filename);
@@ -67,7 +66,7 @@ public class CodeExecutor {
                         stringBuilder.append(line).append("\n");
                     }
                     output.add(stringBuilder.toString());
-                    return output;
+                    return new CodeCompileOutput(0, output);
                 }
             }
             gccProcess.waitFor();
@@ -85,7 +84,7 @@ public class CodeExecutor {
                         stringBuilder.append(line).append("\n");
                     }
                     output.add(stringBuilder.toString());
-                    return output;
+                    return new CodeCompileOutput(0, output);
                 }
             }
             gppProcess.waitFor();
@@ -96,19 +95,17 @@ public class CodeExecutor {
 
         Process process = null;
         BufferedWriter processInputWriter;
-
+        long time = 0;
         // 입력을 프로세스의 System.in으로 전달
         for (Testcase testcase : testcases) {
             stringBuilder = new StringBuilder();
             process = processBuilder.start();
+            // 시작 시간 기록
+            time = System.currentTimeMillis();
+
             processInputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
             processInputWriter.write(testcase.getInput());  // 입력값을 전달
             processInputWriter.newLine(); // 줄바꿈 추가
-//            for (String input : testcase.getInput()) {
-//                processInputWriter.write(input);  // 입력값을 전달
-//                processInputWriter.newLine();  // 줄바꿈 추가
-//                processInputWriter.flush();
-//            }
             processInputWriter.close();
             // 출력 읽기
             BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -126,16 +123,18 @@ public class CodeExecutor {
                 processErrorReader.close();
                 output.add(stringBuilder.toString().strip());
                 process.waitFor();
+                time = System.currentTimeMillis() - time;
                 deleteFile(filename, language);
-                return output;
+                return new CodeCompileOutput(time, output);
             }
             output.add(stringBuilder.toString().strip());
         }
 
         // 프로세스 종료 대기
         process.waitFor();
+        time = System.currentTimeMillis() - time;
         deleteFile(filename, language);
-        return output;  // 프로세스의 출력 반환
+        return new CodeCompileOutput(time, output);  // 프로세스의 출력 반환
     }
 
     private void deleteFile(String filename, Language language) {
