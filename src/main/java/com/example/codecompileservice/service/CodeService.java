@@ -37,7 +37,8 @@ public class CodeService {
     public BaseResponse<CodeSubmitOutput> codeSubmit(CodeCompileInput codeCompileInput) throws Exception {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
         return BaseResponse.success(new CodeSubmitOutput(code.grade(codeExecutor
-                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases()))));
+                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases())
+                .getResult())));
     }
 
     public BaseResponse<Integer> codeRemove(Integer id) {
