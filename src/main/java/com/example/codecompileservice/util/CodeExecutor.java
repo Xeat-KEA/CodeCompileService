@@ -95,7 +95,7 @@ public class CodeExecutor {
         BufferedWriter processInputWriter;
         // 입력을 프로세스의 System.in으로 전달
         CheckInfiniteLoop:
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < testcases.size(); i++) {
             Testcase testcase = testcases.get(i);
             stringBuilder = new StringBuilder();
             process = processBuilder.start();
