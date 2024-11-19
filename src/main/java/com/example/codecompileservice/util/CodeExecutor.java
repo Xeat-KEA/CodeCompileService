@@ -111,6 +111,10 @@ public class CodeExecutor {
             BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             while ((line = processOutputReader.readLine()) != null) {
+                if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
+                    output.add("출력 초과");
+                    return new CodeCompileOutput(0, output);
+                }
                 stringBuilder.append(line).append("\n");
             }
             processOutputReader.close();
