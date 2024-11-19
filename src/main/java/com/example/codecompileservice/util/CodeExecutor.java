@@ -114,6 +114,7 @@ public class CodeExecutor {
             while ((line = processOutputReader.readLine()) != null) {
                 log.info(line + i);
                 if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
+                    log.info("들어옴");
                     processOutputReader.close();
                     output.add("출력 초과");
                     runtimes.add(0L);
