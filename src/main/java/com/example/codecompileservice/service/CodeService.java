@@ -40,7 +40,7 @@ public class CodeService {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
         CodeCompileResult codeCompileResult = codeExecutor
                 .submit(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases());
-        return BaseResponse.success(new CodeSubmitOutput(codeCompileResult.getRuntime(), code.grade(codeCompileResult.getResult())));
+        return BaseResponse.success(new CodeSubmitOutput(code.grade(codeCompileResult.getResult())));
     }
 
     public BaseResponse<Integer> codeRemove(Integer id) {

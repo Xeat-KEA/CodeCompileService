@@ -21,6 +21,7 @@ public class CodeExecutor {
         String filename;
         String line;
         StringBuilder stringBuilder = new StringBuilder();
+        List<Long> runtimes = new ArrayList<>();
         List<String> output = new ArrayList<>();
         if (language == JAVA) {
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
@@ -81,7 +82,6 @@ public class CodeExecutor {
                     while ((line = errorReader.readLine()) != null) {
                         stringBuilder.append(line).append("\n");
                     }
-                    output.add(stringBuilder.toString());
                     throw new CompileException(stringBuilder.toString());
                 }
             }
@@ -93,14 +93,14 @@ public class CodeExecutor {
 
         Process process = null;
         BufferedWriter processInputWriter;
-        long time = 0;
         // 입력을 프로세스의 System.in으로 전달
+        CheckInfiniteLoop:
         for (int i = 0; i < 1; i++) {
             Testcase testcase = testcases.get(i);
             stringBuilder = new StringBuilder();
             process = processBuilder.start();
             // 시작 시간 기록
-            time = System.currentTimeMillis();
+            long time = System.currentTimeMillis();
 
             processInputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
             processInputWriter.write(testcase.getInput());  // 입력값을 전달
@@ -112,11 +112,13 @@ public class CodeExecutor {
             while ((line = processOutputReader.readLine()) != null) {
                 if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
                     output.add("출력 초과");
-                    return new CodeCompileResult(0, output);
+                    runtimes.add(0L);
+                    continue CheckInfiniteLoop;
                 }
                 stringBuilder.append(line).append("\n");
             }
             processOutputReader.close();
+            time = System.currentTimeMillis() - time;
             // 에러 출력 있으면 읽고 바로 리턴
             if ((line = processErrorReader.readLine()) != null) {
                 stringBuilder.append(line).append("\n");
@@ -124,25 +126,27 @@ public class CodeExecutor {
                     stringBuilder.append(line).append("\n");
                 }
                 processErrorReader.close();
-                process.waitFor();
-                deleteFile(filename, language);
-                throw new CompileException(stringBuilder.toString());
+                runtimes.add(0L);
+//                process.waitFor();
+//                deleteFile(filename, language);
+//                throw new CompileException(stringBuilder.toString());
+            } else {
+                runtimes.add(time);
             }
             output.add(stringBuilder.toString().strip());
         }
 
         // 프로세스 종료 대기
         process.waitFor();
-        time = System.currentTimeMillis() - time;
         deleteFile(filename, language);
-        return new CodeCompileResult(time, output);  // 프로세스의 출력 반환
+        return new CodeCompileResult(runtimes, output);  // 프로세스의 출력 반환
     }
 
-    public CodeCompileResult submit(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
-        ProcessBuilder processBuilder;
+    public CodeCompileResult submit(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {        ProcessBuilder processBuilder;
         String filename;
         String line;
         StringBuilder stringBuilder = new StringBuilder();
+        List<Long> runtimes = new ArrayList<>();
         List<String> output = new ArrayList<>();
         if (language == JAVA) {
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
@@ -203,7 +207,6 @@ public class CodeExecutor {
                     while ((line = errorReader.readLine()) != null) {
                         stringBuilder.append(line).append("\n");
                     }
-                    output.add(stringBuilder.toString());
                     throw new CompileException(stringBuilder.toString());
                 }
             }
@@ -215,13 +218,13 @@ public class CodeExecutor {
 
         Process process = null;
         BufferedWriter processInputWriter;
-        long time = 0;
         // 입력을 프로세스의 System.in으로 전달
+        CheckInfiniteLoop:
         for (Testcase testcase : testcases) {
             stringBuilder = new StringBuilder();
             process = processBuilder.start();
             // 시작 시간 기록
-            time = System.currentTimeMillis();
+            long time = System.currentTimeMillis();
 
             processInputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
             processInputWriter.write(testcase.getInput());  // 입력값을 전달
@@ -233,11 +236,13 @@ public class CodeExecutor {
             while ((line = processOutputReader.readLine()) != null) {
                 if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
                     output.add("출력 초과");
-                    return new CodeCompileResult(0, output);
+                    runtimes.add(0L);
+                    continue CheckInfiniteLoop;
                 }
                 stringBuilder.append(line).append("\n");
             }
             processOutputReader.close();
+            time = System.currentTimeMillis() - time;
             // 에러 출력 있으면 읽고 바로 리턴
             if ((line = processErrorReader.readLine()) != null) {
                 stringBuilder.append(line).append("\n");
@@ -245,18 +250,20 @@ public class CodeExecutor {
                     stringBuilder.append(line).append("\n");
                 }
                 processErrorReader.close();
-                process.waitFor();
-                deleteFile(filename, language);
-                throw new CompileException(stringBuilder.toString());
+                runtimes.add(0L);
+//                process.waitFor();
+//                deleteFile(filename, language);
+//                throw new CompileException(stringBuilder.toString());
+            } else {
+                runtimes.add(time);
             }
             output.add(stringBuilder.toString().strip());
         }
 
         // 프로세스 종료 대기
         process.waitFor();
-        time = System.currentTimeMillis() - time;
         deleteFile(filename, language);
-        return new CodeCompileResult(time, output);  // 프로세스의 출력 반환
+        return new CodeCompileResult(runtimes, output);  // 프로세스의 출력 반환
     }
 
     private void deleteFile(String filename, Language language) {

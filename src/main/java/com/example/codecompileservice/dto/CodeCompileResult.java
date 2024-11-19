@@ -6,6 +6,6 @@ import java.util.List;
 
 @Data
 public class CodeCompileResult {
-    private final long runtime;
+    private final List<Long> runtime;
     private final List<String> result;
 }

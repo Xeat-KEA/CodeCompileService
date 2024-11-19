@@ -8,14 +8,13 @@ import java.util.List;
 
 @Data
 public class CodeCompileOutput {
-    private final long runtime;
     private final List<ResultFormat> result = new ArrayList<>();
 
     public CodeCompileOutput(CodeCompileResult codeCompileResult, List<Testcase> testcases) {
-        this.runtime = codeCompileResult.getRuntime();
         List<String> compileResult = codeCompileResult.getResult();
+        List<Long> runtime = codeCompileResult.getRuntime();
         for (int i = 0; i < compileResult.size(); i++) {
-            this.result.add(new ResultFormat(testcases.get(i).getInput(), testcases.get(i).getOutput(), compileResult.get(i)));
+            this.result.add(new ResultFormat(runtime.get(i), testcases.get(i).getInput(), testcases.get(i).getOutput(), compileResult.get(i)));
         }
     }
 }
