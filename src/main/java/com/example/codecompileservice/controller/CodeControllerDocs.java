@@ -46,9 +46,9 @@ public interface CodeControllerDocs {
                 "statusCode": 200,
                 "message": "요청 성공",
                 "data": {
-                    "runtime": 85,
                     "result": [
                         {
+                            "runtime": 85,
                             "input": "5\\n6 3 2 10 -10\\n8\\n10 9 -5 2 3 4 5 -10",
                             "output": "1 0 0 1 1 0 0 1",
                             "result": "1 0 0 1 1 0 0 1"
