@@ -39,7 +39,7 @@ public class CodeService {
     public BaseResponse<CodeSubmitOutput> codeSubmit(CodeCompileInput codeCompileInput) throws Exception {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
         CodeCompileResult codeCompileResult = codeExecutor
-                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases());
+                .submit(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases());
         return BaseResponse.success(new CodeSubmitOutput(codeCompileResult.getRuntime(), code.grade(codeCompileResult.getResult())));
     }
 
