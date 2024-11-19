@@ -123,9 +123,8 @@ public class CodeExecutor {
                 processErrorReader.close();
                 output.add(stringBuilder.toString().strip());
                 process.waitFor();
-                time = System.currentTimeMillis() - time;
                 deleteFile(filename, language);
-                return new CodeCompileOutput(time, output);
+                return new CodeCompileOutput(0, output);
             }
             output.add(stringBuilder.toString().strip());
         }
