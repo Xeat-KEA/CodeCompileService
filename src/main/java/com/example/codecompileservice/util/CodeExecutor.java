@@ -3,6 +3,7 @@ package com.example.codecompileservice.util;
 import com.example.codecompileservice.dto.CodeCompileResult;
 import com.example.codecompileservice.entity.Testcase;
 import com.example.codecompileservice.exception.CompileException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.tools.ToolProvider;
@@ -15,6 +16,7 @@ import static com.example.codecompileservice.util.Language.*;
 import static java.nio.charset.StandardCharsets.*;
 
 @Component
+@Slf4j
 public class CodeExecutor {
     public CodeCompileResult execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
         ProcessBuilder processBuilder;
@@ -110,6 +112,7 @@ public class CodeExecutor {
             BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             while ((line = processOutputReader.readLine()) != null) {
+                log.info(line);
                 if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
                     output.add("출력 초과");
                     runtimes.add(0L);
