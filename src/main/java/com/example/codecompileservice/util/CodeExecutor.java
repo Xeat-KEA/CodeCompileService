@@ -3,7 +3,6 @@ package com.example.codecompileservice.util;
 import com.example.codecompileservice.dto.CodeCompileResult;
 import com.example.codecompileservice.entity.Testcase;
 import com.example.codecompileservice.exception.CompileException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.tools.ToolProvider;
@@ -16,7 +15,6 @@ import static com.example.codecompileservice.util.Language.*;
 import static java.nio.charset.StandardCharsets.*;
 
 @Component
-@Slf4j
 public class CodeExecutor {
     public CodeCompileResult execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
         ProcessBuilder processBuilder;
@@ -109,34 +107,31 @@ public class CodeExecutor {
             processInputWriter.newLine(); // 줄바꿈 추가
             processInputWriter.close();
             // 출력 읽기
-            BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            while ((line = processOutputReader.readLine()) != null) {
-                log.info(line + i);
-                if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
-                    log.info("들어옴");
-                    processOutputReader.close();
-                    output.add("출력 초과");
-                    runtimes.add(0L);
-                    continue CheckInfiniteLoop;
-                }
-                stringBuilder.append(line).append("\n");
-            }
-            processOutputReader.close();
-            time = System.currentTimeMillis() - time;
-            // 에러 출력 있으면 읽고 바로 리턴
-            if ((line = processErrorReader.readLine()) != null) {
-                stringBuilder.append(line).append("\n");
-                while ((line = processErrorReader.readLine()) != null) {
+            try (BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                 BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                while ((line = processOutputReader.readLine()) != null) {
+                    if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
+                        output.add("출력 초과");
+                        runtimes.add(0L);
+                        process.destroy();
+                        continue CheckInfiniteLoop;
+                    }
                     stringBuilder.append(line).append("\n");
                 }
-                processErrorReader.close();
-                runtimes.add(0L);
+                time = System.currentTimeMillis() - time;
+                // 에러 출력 있으면 읽고 바로 리턴
+                if ((line = processErrorReader.readLine()) != null) {
+                    stringBuilder.append(line).append("\n");
+                    while ((line = processErrorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    runtimes.add(0L);
 //                process.waitFor();
 //                deleteFile(filename, language);
 //                throw new CompileException(stringBuilder.toString());
-            } else {
-                runtimes.add(time);
+                } else {
+                    runtimes.add(time);
+                }
             }
             output.add(stringBuilder.toString().strip());
         }
@@ -147,7 +142,8 @@ public class CodeExecutor {
         return new CodeCompileResult(runtimes, output);  // 프로세스의 출력 반환
     }
 
-    public CodeCompileResult submit(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {        ProcessBuilder processBuilder;
+    public CodeCompileResult submit(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
+        ProcessBuilder processBuilder;
         String filename;
         String line;
         StringBuilder stringBuilder = new StringBuilder();
