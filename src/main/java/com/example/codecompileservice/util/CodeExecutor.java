@@ -32,7 +32,6 @@ public class CodeExecutor {
             try (FileWriter writer = new FileWriter(filename + JAVA.getExtension())) {
                 writer.write(code);
             }
-
             // 컴파일
             if (ToolProvider.getSystemJavaCompiler().run(null, outStream, errStream, filename + JAVA.getExtension()) != 0) {
                 deleteFile(filename, language);
@@ -45,6 +44,18 @@ public class CodeExecutor {
             try (FileWriter writer = new FileWriter(filename)) {
                 writer.write(code);
             }
+            ProcessBuilder nodeProcessBuilder = new ProcessBuilder("node", filename);
+            Process nodeProcess = nodeProcessBuilder.start();
+            try (BufferedReader errorReader = nodeProcess.errorReader()) {
+                if (errorReader.readLine() != null) {
+                    while ((line = errorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    nodeProcess.destroy();
+                    throw new CompileException(stringBuilder.toString());
+                }
+            }
+            nodeProcess.destroy();
             // Node.js 프로세스를 실행하고 JavaScript 파일 실행
             processBuilder = new ProcessBuilder("node", filename);
         } else if (language == PYTHON) {
@@ -52,6 +63,17 @@ public class CodeExecutor {
             try (FileWriter writer = new FileWriter(filename)) {
                 writer.write(code);
             }
+            ProcessBuilder pyProcessBuilder = new ProcessBuilder("python3 -m py_compile", filename);
+            Process pyProcess = pyProcessBuilder.start();
+            try (BufferedReader errorReader = pyProcess.errorReader()) {
+                if (errorReader.readLine() != null) {
+                    while ((line = errorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    throw new CompileException(stringBuilder.toString());
+                }
+            }
+            pyProcess.waitFor();
             processBuilder = new ProcessBuilder("python3", filename);
         } else if (language == C) {
             filename = UUID.randomUUID().toString();
@@ -158,7 +180,6 @@ public class CodeExecutor {
             try (FileWriter writer = new FileWriter(filename + JAVA.getExtension())) {
                 writer.write(code);
             }
-
             // 컴파일
             if (ToolProvider.getSystemJavaCompiler().run(null, outStream, errStream, filename + JAVA.getExtension()) != 0) {
                 deleteFile(filename, language);
@@ -171,6 +192,18 @@ public class CodeExecutor {
             try (FileWriter writer = new FileWriter(filename)) {
                 writer.write(code);
             }
+            ProcessBuilder nodeProcessBuilder = new ProcessBuilder("node", filename);
+            Process nodeProcess = nodeProcessBuilder.start();
+            try (BufferedReader errorReader = nodeProcess.errorReader()) {
+                if (errorReader.readLine() != null) {
+                    while ((line = errorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    nodeProcess.destroy();
+                    throw new CompileException(stringBuilder.toString());
+                }
+            }
+            nodeProcess.destroy();
             // Node.js 프로세스를 실행하고 JavaScript 파일 실행
             processBuilder = new ProcessBuilder("node", filename);
         } else if (language == PYTHON) {
@@ -178,6 +211,17 @@ public class CodeExecutor {
             try (FileWriter writer = new FileWriter(filename)) {
                 writer.write(code);
             }
+            ProcessBuilder pyProcessBuilder = new ProcessBuilder("python3 -m py_compile", filename);
+            Process pyProcess = pyProcessBuilder.start();
+            try (BufferedReader errorReader = pyProcess.errorReader()) {
+                if (errorReader.readLine() != null) {
+                    while ((line = errorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    throw new CompileException(stringBuilder.toString());
+                }
+            }
+            pyProcess.waitFor();
             processBuilder = new ProcessBuilder("python3", filename);
         } else if (language == C) {
             filename = UUID.randomUUID().toString();
@@ -232,31 +276,31 @@ public class CodeExecutor {
             processInputWriter.newLine(); // 줄바꿈 추가
             processInputWriter.close();
             // 출력 읽기
-            BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            while ((line = processOutputReader.readLine()) != null) {
-                if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
-                    output.add("출력 초과");
-                    runtimes.add(0L);
-                    continue CheckInfiniteLoop;
-                }
-                stringBuilder.append(line).append("\n");
-            }
-            processOutputReader.close();
-            time = System.currentTimeMillis() - time;
-            // 에러 출력 있으면 읽고 바로 리턴
-            if ((line = processErrorReader.readLine()) != null) {
-                stringBuilder.append(line).append("\n");
-                while ((line = processErrorReader.readLine()) != null) {
+            try (BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                 BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                while ((line = processOutputReader.readLine()) != null) {
+                    if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
+                        output.add("출력 초과");
+                        runtimes.add(0L);
+                        process.destroy();
+                        continue CheckInfiniteLoop;
+                    }
                     stringBuilder.append(line).append("\n");
                 }
-                processErrorReader.close();
-                runtimes.add(0L);
+                time = System.currentTimeMillis() - time;
+                // 에러 출력 있으면 읽고 바로 리턴
+                if ((line = processErrorReader.readLine()) != null) {
+                    stringBuilder.append(line).append("\n");
+                    while ((line = processErrorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    runtimes.add(0L);
 //                process.waitFor();
 //                deleteFile(filename, language);
 //                throw new CompileException(stringBuilder.toString());
-            } else {
-                runtimes.add(time);
+                } else {
+                    runtimes.add(time);
+                }
             }
             output.add(stringBuilder.toString().strip());
         }
