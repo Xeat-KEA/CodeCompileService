@@ -172,7 +172,7 @@ public class CodeExecutor {
             try (FileWriter writer = new FileWriter(filename + PYTHON.getExtension())) {
                 writer.write(code);
             }
-            ProcessBuilder pyProcessBuilder = new ProcessBuilder("python3 -m py_compile", filename + PYTHON.getExtension());
+            ProcessBuilder pyProcessBuilder = new ProcessBuilder("python3", "-m", "py_compile", filename + PYTHON.getExtension());
             Process pyProcess = pyProcessBuilder.start();
             try (BufferedReader errorReader = pyProcess.errorReader()) {
                 if (errorReader.readLine() != null) {
