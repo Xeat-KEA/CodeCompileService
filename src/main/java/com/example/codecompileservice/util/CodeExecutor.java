@@ -17,101 +17,12 @@ import static java.nio.charset.StandardCharsets.*;
 @Component
 public class CodeExecutor {
     public CodeCompileResult execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
-        ProcessBuilder processBuilder;
-        String filename;
+        String filename = "M" + UUID.randomUUID().toString().replace("-", "");
         String line;
         StringBuilder stringBuilder = new StringBuilder();
         List<Long> runtimes = new ArrayList<>();
         List<String> output = new ArrayList<>();
-        if (language == JAVA) {
-            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-            ByteArrayOutputStream errStream = new ByteArrayOutputStream();
-            // 사용자 소스 코드를 파일로 저장
-            filename = "M" + UUID.randomUUID().toString().replace("-", "");
-            code = code.replaceFirst("Main", filename);
-            try (FileWriter writer = new FileWriter(filename + JAVA.getExtension())) {
-                writer.write(code);
-            }
-            // 컴파일
-            if (ToolProvider.getSystemJavaCompiler().run(null, outStream, errStream, filename + JAVA.getExtension()) != 0) {
-                deleteFile(filename, language);
-                throw new CompileException(outStream.toString(UTF_8) + "\n" + errStream.toString(UTF_8));
-            }
-            // 컴파일된 클래스 파일 실행
-            processBuilder = new ProcessBuilder("java", filename);
-        } else if (language == JS) {
-            filename = UUID.randomUUID() + JS.getExtension();
-            try (FileWriter writer = new FileWriter(filename)) {
-                writer.write(code);
-            }
-            ProcessBuilder nodeProcessBuilder = new ProcessBuilder("node", filename);
-            Process nodeProcess = nodeProcessBuilder.start();
-            try (BufferedReader errorReader = nodeProcess.errorReader()) {
-                if (errorReader.readLine() != null) {
-                    while ((line = errorReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    nodeProcess.destroy();
-                    throw new CompileException(stringBuilder.toString());
-                }
-            }
-            nodeProcess.destroy();
-            // Node.js 프로세스를 실행하고 JavaScript 파일 실행
-            processBuilder = new ProcessBuilder("node", filename);
-        } else if (language == PYTHON) {
-            filename = UUID.randomUUID() + PYTHON.getExtension();
-            try (FileWriter writer = new FileWriter(filename)) {
-                writer.write(code);
-            }
-            ProcessBuilder pyProcessBuilder = new ProcessBuilder("python3 -m py_compile", filename);
-            Process pyProcess = pyProcessBuilder.start();
-            try (BufferedReader errorReader = pyProcess.errorReader()) {
-                if (errorReader.readLine() != null) {
-                    while ((line = errorReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    throw new CompileException(stringBuilder.toString());
-                }
-            }
-            pyProcess.waitFor();
-            processBuilder = new ProcessBuilder("python3", filename);
-        } else if (language == C) {
-            filename = UUID.randomUUID().toString();
-            try (FileWriter writer = new FileWriter(filename + C.getExtension())) {
-                writer.write(code);
-            }
-            ProcessBuilder gccProcessBuilder = new ProcessBuilder("gcc", filename + C.getExtension(), "-o", filename);
-            Process gccProcess = gccProcessBuilder.start();
-            try (BufferedReader errorReader = gccProcess.errorReader()) {
-                if (errorReader.readLine() != null) {
-                    while ((line = errorReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    throw new CompileException(stringBuilder.toString());
-                }
-            }
-            gccProcess.waitFor();
-            processBuilder = new ProcessBuilder("./" + filename);
-        } else if (language == CPP) {
-            filename = UUID.randomUUID().toString();
-            try (FileWriter writer = new FileWriter(filename + CPP.getExtension())) {
-                writer.write(code);
-            }
-            ProcessBuilder gppProcessBuilder = new ProcessBuilder("g++", filename + CPP.getExtension(), "-o", filename);
-            Process gppProcess = gppProcessBuilder.start();
-            try (BufferedReader errorReader = gppProcess.errorReader()) {
-                if (errorReader.readLine() != null) {
-                    while ((line = errorReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    throw new CompileException(stringBuilder.toString());
-                }
-            }
-            gppProcess.waitFor();
-            processBuilder = new ProcessBuilder("./" + filename);
-        } else {
-            throw new CompileException("지원되지 않는 언어");
-        }
+        ProcessBuilder processBuilder = compileCode(code, language, filename, stringBuilder);
 
         Process process = null;
         BufferedWriter processInputWriter;
@@ -165,101 +76,12 @@ public class CodeExecutor {
     }
 
     public CodeCompileResult submit(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
-        ProcessBuilder processBuilder;
-        String filename;
+        String filename = "M" + UUID.randomUUID().toString().replace("-", "");
         String line;
         StringBuilder stringBuilder = new StringBuilder();
         List<Long> runtimes = new ArrayList<>();
         List<String> output = new ArrayList<>();
-        if (language == JAVA) {
-            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-            ByteArrayOutputStream errStream = new ByteArrayOutputStream();
-            // 사용자 소스 코드를 파일로 저장
-            filename = "M" + UUID.randomUUID().toString().replace("-", "");
-            code = code.replaceFirst("Main", filename);
-            try (FileWriter writer = new FileWriter(filename + JAVA.getExtension())) {
-                writer.write(code);
-            }
-            // 컴파일
-            if (ToolProvider.getSystemJavaCompiler().run(null, outStream, errStream, filename + JAVA.getExtension()) != 0) {
-                deleteFile(filename, language);
-                throw new CompileException(outStream.toString(UTF_8) + "\n" + errStream.toString(UTF_8));
-            }
-            // 컴파일된 클래스 파일 실행
-            processBuilder = new ProcessBuilder("java", filename);
-        } else if (language == JS) {
-            filename = UUID.randomUUID() + JS.getExtension();
-            try (FileWriter writer = new FileWriter(filename)) {
-                writer.write(code);
-            }
-            ProcessBuilder nodeProcessBuilder = new ProcessBuilder("node", filename);
-            Process nodeProcess = nodeProcessBuilder.start();
-            try (BufferedReader errorReader = nodeProcess.errorReader()) {
-                if (errorReader.readLine() != null) {
-                    while ((line = errorReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    nodeProcess.destroy();
-                    throw new CompileException(stringBuilder.toString());
-                }
-            }
-            nodeProcess.destroy();
-            // Node.js 프로세스를 실행하고 JavaScript 파일 실행
-            processBuilder = new ProcessBuilder("node", filename);
-        } else if (language == PYTHON) {
-            filename = UUID.randomUUID() + PYTHON.getExtension();
-            try (FileWriter writer = new FileWriter(filename)) {
-                writer.write(code);
-            }
-            ProcessBuilder pyProcessBuilder = new ProcessBuilder("python3 -m py_compile", filename);
-            Process pyProcess = pyProcessBuilder.start();
-            try (BufferedReader errorReader = pyProcess.errorReader()) {
-                if (errorReader.readLine() != null) {
-                    while ((line = errorReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    throw new CompileException(stringBuilder.toString());
-                }
-            }
-            pyProcess.waitFor();
-            processBuilder = new ProcessBuilder("python3", filename);
-        } else if (language == C) {
-            filename = UUID.randomUUID().toString();
-            try (FileWriter writer = new FileWriter(filename + C.getExtension())) {
-                writer.write(code);
-            }
-            ProcessBuilder gccProcessBuilder = new ProcessBuilder("gcc", filename + C.getExtension(), "-o", filename);
-            Process gccProcess = gccProcessBuilder.start();
-            try (BufferedReader errorReader = gccProcess.errorReader()) {
-                if (errorReader.readLine() != null) {
-                    while ((line = errorReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    throw new CompileException(stringBuilder.toString());
-                }
-            }
-            gccProcess.waitFor();
-            processBuilder = new ProcessBuilder("./" + filename);
-        } else if (language == CPP) {
-            filename = UUID.randomUUID().toString();
-            try (FileWriter writer = new FileWriter(filename + CPP.getExtension())) {
-                writer.write(code);
-            }
-            ProcessBuilder gppProcessBuilder = new ProcessBuilder("g++", filename + CPP.getExtension(), "-o", filename);
-            Process gppProcess = gppProcessBuilder.start();
-            try (BufferedReader errorReader = gppProcess.errorReader()) {
-                if (errorReader.readLine() != null) {
-                    while ((line = errorReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    throw new CompileException(stringBuilder.toString());
-                }
-            }
-            gppProcess.waitFor();
-            processBuilder = new ProcessBuilder("./" + filename);
-        } else {
-            throw new CompileException("지원되지 않는 언어");
-        }
+        ProcessBuilder processBuilder = compileCode(code, language, filename, stringBuilder);
 
         Process process = null;
         BufferedWriter processInputWriter;
@@ -311,14 +133,103 @@ public class CodeExecutor {
         return new CodeCompileResult(runtimes, output);  // 프로세스의 출력 반환
     }
 
-    private void deleteFile(String filename, Language language) {
-        if (language == PYTHON || language == JS) {
-            new File(filename).delete();
-        } else {
-            new File(filename + language.getExtension()).delete();
-            if (language == JAVA) {
-                new File(filename + ".class").delete();
+    private ProcessBuilder compileCode(String code, Language language, String filename, StringBuilder stringBuilder) throws IOException, InterruptedException {
+        String line;
+        if (language == JAVA) {
+            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+            ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+            // 사용자 소스 코드를 파일로 저장
+            code = code.replaceFirst("Main", filename);
+            try (FileWriter writer = new FileWriter(filename + JAVA.getExtension())) {
+                writer.write(code);
             }
+            // 컴파일
+            if (ToolProvider.getSystemJavaCompiler().run(null, outStream, errStream, filename + JAVA.getExtension()) != 0) {
+                deleteFile(filename, language);
+                throw new CompileException(outStream.toString(UTF_8) + "\n" + errStream.toString(UTF_8));
+            }
+            // 컴파일된 클래스 파일 실행
+            return new ProcessBuilder("java", filename + JAVA.getExtension());
+        } else if (language == JS) {
+            try (FileWriter writer = new FileWriter(filename + JS.getExtension())) {
+                writer.write(code);
+            }
+            ProcessBuilder nodeProcessBuilder = new ProcessBuilder("node", filename + JS.getExtension());
+            Process nodeProcess = nodeProcessBuilder.start();
+            try (BufferedReader errorReader = nodeProcess.errorReader()) {
+                if (errorReader.readLine() != null) {
+                    while ((line = errorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    nodeProcess.destroy();
+                    throw new CompileException(stringBuilder.toString());
+                }
+            }
+            nodeProcess.destroy();
+            // Node.js 프로세스를 실행하고 JavaScript 파일 실행
+            return new ProcessBuilder("node", filename + JS.getExtension());
+        } else if (language == PYTHON) {
+            try (FileWriter writer = new FileWriter(filename + PYTHON.getExtension())) {
+                writer.write(code);
+            }
+            ProcessBuilder pyProcessBuilder = new ProcessBuilder("python3 -m py_compile", filename + PYTHON.getExtension());
+            Process pyProcess = pyProcessBuilder.start();
+            try (BufferedReader errorReader = pyProcess.errorReader()) {
+                if (errorReader.readLine() != null) {
+                    while ((line = errorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    deleteFile(filename, language);
+                    throw new CompileException(stringBuilder.toString());
+                }
+            }
+            pyProcess.waitFor();
+            return new ProcessBuilder("python3", filename + PYTHON.getExtension());
+        } else if (language == C) {
+            try (FileWriter writer = new FileWriter(filename + C.getExtension())) {
+                writer.write(code);
+            }
+            ProcessBuilder gccProcessBuilder = new ProcessBuilder("gcc", filename + C.getExtension(), "-o", filename);
+            Process gccProcess = gccProcessBuilder.start();
+            try (BufferedReader errorReader = gccProcess.errorReader()) {
+                if (errorReader.readLine() != null) {
+                    while ((line = errorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    deleteFile(filename, language);
+                    throw new CompileException(stringBuilder.toString());
+                }
+            }
+            gccProcess.waitFor();
+            return new ProcessBuilder("./" + filename);
+        } else if (language == CPP) {
+            try (FileWriter writer = new FileWriter(filename + CPP.getExtension())) {
+                writer.write(code);
+            }
+            ProcessBuilder gppProcessBuilder = new ProcessBuilder("g++", filename + CPP.getExtension(), "-o", filename);
+            Process gppProcess = gppProcessBuilder.start();
+            try (BufferedReader errorReader = gppProcess.errorReader()) {
+                if (errorReader.readLine() != null) {
+                    while ((line = errorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    deleteFile(filename, language);
+                    throw new CompileException(stringBuilder.toString());
+                }
+            }
+            gppProcess.waitFor();
+            return new ProcessBuilder("./" + filename);
+        } else {
+            throw new CompileException("지원되지 않는 언어");
+        }
+    }
+
+    private void deleteFile(String filename, Language language) {
+        new File(filename + language.getExtension()).delete();
+        if (language == JAVA) {
+            new File(filename + ".class").delete();
+        } else if (language == C || language == CPP) {
+            new File(filename).delete();
         }
     }
 }
