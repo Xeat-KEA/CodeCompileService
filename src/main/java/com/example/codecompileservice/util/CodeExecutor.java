@@ -26,7 +26,7 @@ public class CodeExecutor {
         List<String> output = Collections.synchronizedList(new ArrayList<>());
         List<Long> runtimes = Collections.synchronizedList(new ArrayList<>());
         long totaltime = System.currentTimeMillis();
-        testcases.parallelStream().forEach(testcase -> {
+        testcases.parallelStream().forEachOrdered(testcase -> {
             StringBuilder stringBuilder = new StringBuilder();
             try {
                 Process process = processBuilder.start();
