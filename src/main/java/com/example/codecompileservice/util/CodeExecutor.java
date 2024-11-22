@@ -33,8 +33,8 @@ public class CodeExecutor {
                 long time = System.currentTimeMillis();
 
                 try (BufferedWriter processInputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
-                    processInputWriter.write(testcase.getInput());  // 입력값 전달
-//                    processInputWriter.newLine(); // 줄바꿈 추가
+                    processInputWriter.write(testcase.getInput().strip());  // 입력값 전달
+                    processInputWriter.newLine(); // 줄바꿈 추가
                 }
 
                 try (BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
