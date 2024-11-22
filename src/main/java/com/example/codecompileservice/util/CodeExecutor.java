@@ -21,19 +21,11 @@ import static java.nio.charset.StandardCharsets.*;
 public class CodeExecutor {
     public CodeCompileResult execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
         String filename = "M" + UUID.randomUUID().toString().replace("-", "");
-//        String line;
-//        StringBuilder stringBuilder = new StringBuilder();
-//        List<Long> runtimes = new ArrayList<>();
-//        List<String> output = new ArrayList<>();
         ProcessBuilder processBuilder = compileCode(code, language, filename);
-//        BufferedWriter processInputWriter;
-//        Process process = null;
         // 입력을 프로세스의 System.in으로 전달
-        long totaltime = System.currentTimeMillis();
-
         List<String> output = Collections.synchronizedList(new ArrayList<>());
         List<Long> runtimes = Collections.synchronizedList(new ArrayList<>());
-
+        long totaltime = System.currentTimeMillis();
         testcases.parallelStream().forEach(testcase -> {
             StringBuilder stringBuilder = new StringBuilder();
             try {
@@ -47,7 +39,6 @@ public class CodeExecutor {
 
                 try (BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                      BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-
                     String line;
                     while ((line = processOutputReader.readLine()) != null) {
                         if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
@@ -58,7 +49,6 @@ public class CodeExecutor {
                         }
                         stringBuilder.append(line).append("\n");
                     }
-
                     time = System.currentTimeMillis() - time;
 
                     // 에러 출력 처리
@@ -169,7 +159,7 @@ public class CodeExecutor {
             try (FileWriter writer = new FileWriter(filename + JS.getExtension())) {
                 writer.write(code);
             }
-            ProcessBuilder nodeProcessBuilder = new ProcessBuilder("node", filename + JS.getExtension());
+            ProcessBuilder nodeProcessBuilder = new ProcessBuilder("pkg", filename + JS.getExtension(), "--targets", "node12-linux-x64");
             Process nodeProcess = nodeProcessBuilder.start();
             try (BufferedReader errorReader = nodeProcess.errorReader()) {
                 if (errorReader.readLine() != null) {
