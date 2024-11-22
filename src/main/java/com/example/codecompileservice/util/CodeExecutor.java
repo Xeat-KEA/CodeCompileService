@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.tools.ToolProvider;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,60 +21,68 @@ import static java.nio.charset.StandardCharsets.*;
 public class CodeExecutor {
     public CodeCompileResult execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
         String filename = "M" + UUID.randomUUID().toString().replace("-", "");
-        String line;
-        StringBuilder stringBuilder = new StringBuilder();
-        List<Long> runtimes = new ArrayList<>();
-        List<String> output = new ArrayList<>();
-        ProcessBuilder processBuilder = compileCode(code, language, filename, stringBuilder);
-
-        Process process = null;
-        BufferedWriter processInputWriter;
+//        String line;
+//        StringBuilder stringBuilder = new StringBuilder();
+//        List<Long> runtimes = new ArrayList<>();
+//        List<String> output = new ArrayList<>();
+        ProcessBuilder processBuilder = compileCode(code, language, filename);
+//        BufferedWriter processInputWriter;
+//        Process process = null;
         // 입력을 프로세스의 System.in으로 전달
         long totaltime = System.currentTimeMillis();
-        CheckInfiniteLoop:
-        for (int i = 0; i < testcases.size(); i++) {
-            Testcase testcase = testcases.get(i);
-            stringBuilder = new StringBuilder();
-            process = processBuilder.start();
-            // 시작 시간 기록
-            long time = System.currentTimeMillis();
 
-            processInputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-            processInputWriter.write(testcase.getInput());  // 입력값을 전달
-            processInputWriter.newLine(); // 줄바꿈 추가
-            processInputWriter.close();
-            // 출력 읽기
-            try (BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                 BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                while ((line = processOutputReader.readLine()) != null) {
-                    if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
-                        output.add("출력 초과");
-                        runtimes.add(0L);
-                        process.destroy();
-                        continue CheckInfiniteLoop;
-                    }
-                    stringBuilder.append(line).append("\n");
+        List<String> output = Collections.synchronizedList(new ArrayList<>());
+        List<Long> runtimes = Collections.synchronizedList(new ArrayList<>());
+
+        testcases.parallelStream().forEach(testcase -> {
+            StringBuilder stringBuilder = new StringBuilder();
+            try {
+                Process process = processBuilder.start();
+                long time = System.currentTimeMillis();
+
+                try (BufferedWriter processInputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+                    processInputWriter.write(testcase.getInput());  // 입력값 전달
+                    processInputWriter.newLine(); // 줄바꿈 추가
                 }
-                time = System.currentTimeMillis() - time;
-                // 에러 출력 있으면 읽고 바로 리턴
-                if ((line = processErrorReader.readLine()) != null) {
-                    stringBuilder.append(line).append("\n");
-                    while ((line = processErrorReader.readLine()) != null) {
+
+                try (BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                     BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+
+                    String line;
+                    while ((line = processOutputReader.readLine()) != null) {
+                        if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
+                            output.add("출력 초과");
+                            runtimes.add(0L);
+                            process.destroy();
+                            return;
+                        }
                         stringBuilder.append(line).append("\n");
                     }
-                    runtimes.add(0L);
-//                process.waitFor();
-//                deleteFile(filename, language);
-//                throw new CompileException(stringBuilder.toString());
-                } else {
-                    runtimes.add(time);
+
+                    time = System.currentTimeMillis() - time;
+
+                    // 에러 출력 처리
+                    if ((line = processErrorReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                        while ((line = processErrorReader.readLine()) != null) {
+                            stringBuilder.append(line).append("\n");
+                        }
+                        runtimes.add(0L);
+                    } else {
+                        runtimes.add(time);
+                    }
                 }
+                process.waitFor();
+                output.add(stringBuilder.toString().strip());
+            } catch (Exception e) {
+                output.add("프로세스 실행 중 오류 발생: " + e.getMessage());
+                runtimes.add(0L);
             }
-            output.add(stringBuilder.toString().strip());
-        }
+        });
+
         log.info("총 걸린 코드 실행 시간{}",System.currentTimeMillis() - totaltime);
         // 프로세스 종료 대기
-        process.waitFor();
+//        process.waitFor();
         deleteFile(filename, language);
         return new CodeCompileResult(runtimes, output);  // 프로세스의 출력 반환
     }
@@ -84,7 +93,7 @@ public class CodeExecutor {
         StringBuilder stringBuilder = new StringBuilder();
         List<Long> runtimes = new ArrayList<>();
         List<String> output = new ArrayList<>();
-        ProcessBuilder processBuilder = compileCode(code, language, filename, stringBuilder);
+        ProcessBuilder processBuilder = compileCode(code, language, filename);
 
         Process process = null;
         BufferedWriter processInputWriter;
@@ -136,8 +145,9 @@ public class CodeExecutor {
         return new CodeCompileResult(runtimes, output);  // 프로세스의 출력 반환
     }
 
-    private ProcessBuilder compileCode(String code, Language language, String filename, StringBuilder stringBuilder) throws IOException, InterruptedException {
+    private ProcessBuilder compileCode(String code, Language language, String filename) throws IOException, InterruptedException {
         String line;
+        StringBuilder stringBuilder = new StringBuilder();
         long totaltime = System.currentTimeMillis();
         if (language == JAVA) {
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
@@ -154,7 +164,7 @@ public class CodeExecutor {
             }
             log.info("총 걸린 코드 컴파일 시간{}",System.currentTimeMillis() - totaltime);
             // 컴파일된 클래스 파일 실행
-            return new ProcessBuilder("java", "-XX:+UseSerialGC", filename + JAVA.getExtension());
+            return new ProcessBuilder("java", filename + JAVA.getExtension());
         } else if (language == JS) {
             try (FileWriter writer = new FileWriter(filename + JS.getExtension())) {
                 writer.write(code);
