@@ -3,6 +3,7 @@ package com.example.codecompileservice.util;
 import com.example.codecompileservice.dto.CodeCompileResult;
 import com.example.codecompileservice.entity.Testcase;
 import com.example.codecompileservice.exception.CompileException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.tools.ToolProvider;
@@ -15,6 +16,7 @@ import static com.example.codecompileservice.util.Language.*;
 import static java.nio.charset.StandardCharsets.*;
 
 @Component
+@Slf4j
 public class CodeExecutor {
     public CodeCompileResult execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
         String filename = "M" + UUID.randomUUID().toString().replace("-", "");
@@ -27,6 +29,7 @@ public class CodeExecutor {
         Process process = null;
         BufferedWriter processInputWriter;
         // 입력을 프로세스의 System.in으로 전달
+        long totaltime = System.currentTimeMillis();
         CheckInfiniteLoop:
         for (int i = 0; i < testcases.size(); i++) {
             Testcase testcase = testcases.get(i);
@@ -68,7 +71,7 @@ public class CodeExecutor {
             }
             output.add(stringBuilder.toString().strip());
         }
-
+        log.info("총 걸린 코드 실행 시간{}",System.currentTimeMillis() - totaltime);
         // 프로세스 종료 대기
         process.waitFor();
         deleteFile(filename, language);
@@ -135,6 +138,7 @@ public class CodeExecutor {
 
     private ProcessBuilder compileCode(String code, Language language, String filename, StringBuilder stringBuilder) throws IOException, InterruptedException {
         String line;
+        long totaltime = System.currentTimeMillis();
         if (language == JAVA) {
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
             ByteArrayOutputStream errStream = new ByteArrayOutputStream();
@@ -148,6 +152,7 @@ public class CodeExecutor {
                 deleteFile(filename, language);
                 throw new CompileException(outStream.toString(UTF_8) + "\n" + errStream.toString(UTF_8));
             }
+            log.info("총 걸린 코드 컴파일 시간{}",System.currentTimeMillis() - totaltime);
             // 컴파일된 클래스 파일 실행
             return new ProcessBuilder("java", filename + JAVA.getExtension());
         } else if (language == JS) {
@@ -167,6 +172,7 @@ public class CodeExecutor {
             }
             nodeProcess.destroy();
             // Node.js 프로세스를 실행하고 JavaScript 파일 실행
+            log.info("총 걸린 코드 컴파일 시간{}",System.currentTimeMillis() - totaltime);
             return new ProcessBuilder("node", filename + JS.getExtension());
         } else if (language == PYTHON) {
             try (FileWriter writer = new FileWriter(filename + PYTHON.getExtension())) {
@@ -201,6 +207,7 @@ public class CodeExecutor {
                 }
             }
             gccProcess.waitFor();
+            log.info("총 걸린 코드 컴파일 시간{}",System.currentTimeMillis() - totaltime);
             return new ProcessBuilder("./" + filename);
         } else if (language == CPP) {
             try (FileWriter writer = new FileWriter(filename + CPP.getExtension())) {
@@ -218,12 +225,13 @@ public class CodeExecutor {
                 }
             }
             gppProcess.waitFor();
+            log.info("총 걸린 코드 컴파일 시간{}",System.currentTimeMillis() - totaltime);
             return new ProcessBuilder("./" + filename);
         } else {
             throw new CompileException("지원되지 않는 언어");
         }
     }
-
+//토탈 시간도 측정
     private void deleteFile(String filename, Language language) {
         new File(filename + language.getExtension()).delete();
         if (language == JAVA) {
