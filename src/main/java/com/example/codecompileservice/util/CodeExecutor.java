@@ -156,6 +156,7 @@ public class CodeExecutor {
             }
             ProcessBuilder nodeProcessBuilder = new ProcessBuilder("node", filename + JS.getExtension());
             Process nodeProcess = nodeProcessBuilder.start();
+            nodeProcess.destroy();
             try (BufferedReader errorReader = nodeProcess.errorReader()) {
                 if (errorReader.readLine() != null) {
                     while ((line = errorReader.readLine()) != null) {
@@ -165,7 +166,7 @@ public class CodeExecutor {
                     throw new CompileException(stringBuilder.toString());
                 }
             }
-            nodeProcess.destroy();
+
             // Node.js 프로세스를 실행하고 JavaScript 파일 실행
             return new ProcessBuilder("node", filename + JS.getExtension());
         } else if (language == PYTHON) {
