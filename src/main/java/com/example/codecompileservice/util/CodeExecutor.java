@@ -154,7 +154,7 @@ public class CodeExecutor {
             }
             log.info("총 걸린 코드 컴파일 시간{}",System.currentTimeMillis() - totaltime);
             // 컴파일된 클래스 파일 실행
-            return new ProcessBuilder("java", filename + JAVA.getExtension());
+            return new ProcessBuilder("java", "-XX:+UseSerialGC", filename + JAVA.getExtension());
         } else if (language == JS) {
             try (FileWriter writer = new FileWriter(filename + JS.getExtension())) {
                 writer.write(code);
