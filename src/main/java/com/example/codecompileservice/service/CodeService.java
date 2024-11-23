@@ -1,9 +1,6 @@
 package com.example.codecompileservice.service;
 
-import com.example.codecompileservice.dto.CodeCompileInput;
-import com.example.codecompileservice.dto.CodeCompileOutput;
-import com.example.codecompileservice.dto.CodeCompileResult;
-import com.example.codecompileservice.dto.CodeSubmitOutput;
+import com.example.codecompileservice.dto.*;
 import com.example.codecompileservice.entity.Code;
 import com.example.codecompileservice.global.BaseResponse;
 import com.example.codecompileservice.repository.CodeRepository;
@@ -18,7 +15,7 @@ import java.util.Base64;
 public class CodeService {
     private final CodeRepository codeRepository;
     private final CodeExecutor codeExecutor;
-//    private final CodeBankServiceClient codeBankServiceClient;
+    private final CodeBankServiceClient codeBankServiceClient;
 
     public BaseResponse<Code> codeSave(Code code) {
         return BaseResponse.success(codeRepository.save(code));
@@ -29,17 +26,17 @@ public class CodeService {
     }
 
     public BaseResponse<CodeCompileOutput> codeCompile(CodeCompileInput codeCompileInput) throws Exception {
-//        codeBankServiceClient.updateHistory(codeCompileInput.getCodeId(), new CodeHistoryDto());
+        codeBankServiceClient.updateHistory(Long.valueOf(codeCompileInput.getCodeId()), "naver_Qrv_NzjedzSvtECKw1m7y9MEgsy59nSCZwXlsXqOCXQ", new CodeHistoryDto());
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
         return BaseResponse.success(new CodeCompileOutput(codeExecutor
-                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases()),
+                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases(), false),
                 code.getTestcases()));
     }
 
     public BaseResponse<CodeSubmitOutput> codeSubmit(CodeCompileInput codeCompileInput) throws Exception {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
         CodeCompileResult codeCompileResult = codeExecutor
-                .submit(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases());
+                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases(), true);
         return BaseResponse.success(new CodeSubmitOutput(code.grade(codeCompileResult.getResult())));
     }
 

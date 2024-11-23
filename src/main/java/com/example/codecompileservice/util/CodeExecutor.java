@@ -19,14 +19,21 @@ import static java.nio.charset.StandardCharsets.*;
 @Component
 @Slf4j
 public class CodeExecutor {
-    public CodeCompileResult execute(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
+    public CodeCompileResult execute(String code, Language language, List<Testcase> testcases, Boolean submit) throws IOException, CompileException, InterruptedException {
         String filename = "M" + UUID.randomUUID().toString().replace("-", "");
         ProcessBuilder processBuilder = compileCode(code, language, filename);
         // 입력을 프로세스의 System.in으로 전달
         List<String> output = Collections.synchronizedList(new ArrayList<>());
         List<Long> runtimes = Collections.synchronizedList(new ArrayList<>());
+        long testcaseCount;// 실행할 테스트케이스 개수
+        if (submit) {
+            testcaseCount = testcases.size();
+        } else {
+            testcaseCount = testcases.size(); // 나중에 3정도로 변경
+        }
+
         long totaltime = System.currentTimeMillis();
-        testcases.parallelStream().forEachOrdered(testcase -> {
+        testcases.parallelStream().limit(testcaseCount).forEachOrdered(testcase -> {
             StringBuilder stringBuilder = new StringBuilder();
             try {
                 Process process = processBuilder.start();
@@ -35,64 +42,6 @@ public class CodeExecutor {
                 try (BufferedWriter processInputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
                     processInputWriter.write(testcase.getInput().strip());  // 입력값 전달
                     processInputWriter.newLine(); // 줄바꿈 추가
-                }
-
-                try (BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                     BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                    String line;
-                    while ((line = processOutputReader.readLine()) != null) {
-                        if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
-                            output.add("출력 초과");
-                            runtimes.add(0L);
-                            process.destroy();
-                            return;
-                        }
-                        stringBuilder.append(line).append("\n");
-                    }
-                    time = System.currentTimeMillis() - time;
-
-                    // 에러 출력 처리
-                    if ((line = processErrorReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                        while ((line = processErrorReader.readLine()) != null) {
-                            stringBuilder.append(line).append("\n");
-                        }
-                        runtimes.add(0L);
-                    } else {
-                        runtimes.add(time);
-                    }
-                }
-                process.waitFor();
-                output.add(stringBuilder.toString().strip());
-            } catch (Exception e) {
-                output.add("프로세스 실행 중 오류 발생: " + e.getMessage());
-                runtimes.add(0L);
-            }
-        });
-
-        log.info("총 걸린 코드 실행 시간{}",System.currentTimeMillis() - totaltime);
-        // 프로세스 종료 대기
-//        process.waitFor();
-        deleteFile(filename, language);
-        return new CodeCompileResult(runtimes, output);  // 프로세스의 출력 반환
-    }
-
-    public CodeCompileResult submit(String code, Language language, List<Testcase> testcases) throws IOException, CompileException, InterruptedException {
-        String filename = "M" + UUID.randomUUID().toString().replace("-", "");
-        ProcessBuilder processBuilder = compileCode(code, language, filename);
-        // 입력을 프로세스의 System.in으로 전달
-        List<String> output = Collections.synchronizedList(new ArrayList<>());
-        List<Long> runtimes = Collections.synchronizedList(new ArrayList<>());
-        long totaltime = System.currentTimeMillis();
-        testcases.parallelStream().forEach(testcase -> {
-            StringBuilder stringBuilder = new StringBuilder();
-            try {
-                Process process = processBuilder.start();
-                long time = System.currentTimeMillis();
-
-                try (BufferedWriter processInputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
-                    processInputWriter.write(testcase.getInput());  // 입력값 전달
-//                    processInputWriter.newLine(); // 줄바꿈 추가
                 }
 
                 try (BufferedReader processErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
