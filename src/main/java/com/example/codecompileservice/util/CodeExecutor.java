@@ -37,9 +37,10 @@ public class CodeExecutor {
             StringBuilder stringBuilder = new StringBuilder();
             try {
                 Process process = processBuilder.start();
-                long time = System.currentTimeMillis();
+                long time;
 
                 try (BufferedWriter processInputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+                    time = System.currentTimeMillis();
                     processInputWriter.write(testcase.getInput().strip());  // 입력값 전달
                     processInputWriter.newLine(); // 줄바꿈 추가
                 }
@@ -103,7 +104,7 @@ public class CodeExecutor {
             }
             log.info("총 걸린 코드 컴파일 시간{}",System.currentTimeMillis() - totaltime);
             // 컴파일된 클래스 파일 실행
-            return new ProcessBuilder("java", filename + JAVA.getExtension());
+            return new ProcessBuilder("java", filename);
         } else if (language == JS) {
             try (FileWriter writer = new FileWriter(filename + JS.getExtension())) {
                 writer.write(code);
