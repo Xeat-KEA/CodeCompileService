@@ -28,8 +28,7 @@ public class CodeService {
 
     public BaseResponse<CodeCompileOutput> codeCompile(CodeCompileInput codeCompileInput) throws Exception {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
-        codeBankServiceClient.updateHistory(Long.valueOf(codeCompileInput.getCodeId()), TEMP_USER_ID,
-                new CodeHistoryDto(codeCompileInput.getCodeId(), TEMP_USER_ID, codeCompileInput.getCode(), false));
+        codeBankServiceClient.updateHistory(new CodeHistoryDto(codeCompileInput.getCodeId(), TEMP_USER_ID, codeCompileInput.getCode(), false));
         return BaseResponse.success(new CodeCompileOutput(codeExecutor
                 .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases(), false),
                 code.getTestcases()));
@@ -39,8 +38,7 @@ public class CodeService {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
         CodeSubmitOutput codeSubmitOutput = new CodeSubmitOutput(code.grade(codeExecutor
                 .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases(), true).getResult()));
-        codeBankServiceClient.updateHistory(Long.valueOf(codeCompileInput.getCodeId()), TEMP_USER_ID,
-                new CodeHistoryDto(codeCompileInput.getCodeId(), TEMP_USER_ID, codeCompileInput.getCode(), codeSubmitOutput.getIsCorrect()));
+        codeBankServiceClient.updateHistory(new CodeHistoryDto(codeCompileInput.getCodeId(), TEMP_USER_ID, codeCompileInput.getCode(), codeSubmitOutput.getIsCorrect()));
 
         return BaseResponse.success(codeSubmitOutput);
     }
