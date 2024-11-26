@@ -5,7 +5,13 @@ import lombok.Getter;
 
 @Getter
 public enum Language {
-    JAVA(".java"), JS(".js"), PYTHON(".py"), C(".c"), CPP(".cpp");
+    JAVA(".java"),
+    JAVASCRIPT(".js"),
+    PYTHON(".py"),
+    C(".c"),
+    C_PLUS_PLUS(".cpp"),
+    KOTLIN(".kt"),
+    GO(".go"),;
 
     private final String extension;
 
