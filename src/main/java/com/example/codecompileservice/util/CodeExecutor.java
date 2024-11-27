@@ -185,7 +185,7 @@ public class CodeExecutor {
                 try (FileWriter writer = new FileWriter(filename + KOTLIN.getExtension())) {
                     writer.write(code);
                 }
-                ProcessBuilder ktProcessBuilder = new ProcessBuilder("kotlinc-jvm", "-include-runtime", "-d", filename + ".jar", filename + KOTLIN.getExtension());
+                ProcessBuilder ktProcessBuilder = new ProcessBuilder("kotlinc", "-jvm", "-include-runtime", "-d", filename + ".jar", filename + KOTLIN.getExtension());
                 Process ktProcess = ktProcessBuilder.start();
                 try (BufferedReader errorReader = ktProcess.errorReader()) {
                     if (errorReader.readLine() != null) {
