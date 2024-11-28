@@ -16,7 +16,6 @@ public class CodeService {
     private final CodeRepository codeRepository;
     private final CodeExecutor codeExecutor;
     private final CodeBankServiceClient codeBankServiceClient;
-    private final static String TEMP_USER_ID = "naver_Qrv_NzjedzSvtECKw1m7y9MEgsy59nSCZwXlsXqOCXQ";
 
     public BaseResponse<Code> codeSave(Code code) {
         return BaseResponse.success(codeRepository.save(code));
@@ -26,19 +25,19 @@ public class CodeService {
         return BaseResponse.success(codeRepository.findById(id).orElseThrow());
     }
 
-    public BaseResponse<CodeCompileOutput> codeCompile(CodeCompileInput codeCompileInput) throws Exception {
+    public BaseResponse<CodeCompileOutput> codeCompile(String userId, CodeCompileInput codeCompileInput) throws Exception {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
-        codeBankServiceClient.updateHistory(new CodeHistoryDto(codeCompileInput.getCodeId(), TEMP_USER_ID, codeCompileInput.getCode(), false));
+        codeBankServiceClient.updateHistory(new CodeHistoryDto(codeCompileInput.getCodeId(), userId, codeCompileInput.getCode(), false));
         return BaseResponse.success(new CodeCompileOutput(codeExecutor
                 .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases(), false),
                 code.getTestcases()));
     }
 
-    public BaseResponse<CodeSubmitOutput> codeSubmit(CodeCompileInput codeCompileInput) throws Exception {
+    public BaseResponse<CodeSubmitOutput> codeSubmit(String userId, CodeCompileInput codeCompileInput) throws Exception {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
         CodeSubmitOutput codeSubmitOutput = new CodeSubmitOutput(code.grade(codeExecutor
                 .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases(), true).getResult()));
-        codeBankServiceClient.updateHistory(new CodeHistoryDto(codeCompileInput.getCodeId(), TEMP_USER_ID, codeCompileInput.getCode(), codeSubmitOutput.getIsCorrect()));
+        codeBankServiceClient.updateHistory(new CodeHistoryDto(codeCompileInput.getCodeId(), userId, codeCompileInput.getCode(), codeSubmitOutput.getIsCorrect()));
 
         return BaseResponse.success(codeSubmitOutput);
     }

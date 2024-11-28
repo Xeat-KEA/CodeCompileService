@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @Tag(name = "코테 API")
 public interface CodeControllerDocs {
@@ -62,10 +63,10 @@ public interface CodeControllerDocs {
                 "message": "Exception in thread \\"main\\" java.lang.NumberFormatException: For input string: \\"(){}[]\\"\\n\\tat java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:67)\\n\\tat java.base/java.lang.Integer.parseInt(Integer.java:654)\\n\\tat java.base/java.lang.Integer.parseInt(Integer.java:786)\\n\\tat M6bdb6c2ac8fb4d38a8359aa6d70bab65.main(M6bdb6c2ac8fb4d38a8359aa6d70bab65.java:11)\\n",
                 "data": null
             }""")))
-    BaseResponse<CodeCompileOutput> compileCode(@RequestBody CodeCompileInput codeCompileInput) throws Exception;
+    BaseResponse<CodeCompileOutput> compileCode(@RequestHeader String userId, @RequestBody CodeCompileInput codeCompileInput) throws Exception;
 
     @Operation(summary = "코드 제출", description = "정답인지 아닌지 리턴")
-    BaseResponse<CodeSubmitOutput> submitCode(@RequestBody CodeCompileInput codeCompileInput) throws Exception;
+    BaseResponse<CodeSubmitOutput> submitCode(@RequestHeader String userId, @RequestBody CodeCompileInput codeCompileInput) throws Exception;
 
     @Operation(summary = "문제 삭제")
     BaseResponse<Integer> removeCode(@PathVariable Integer id);

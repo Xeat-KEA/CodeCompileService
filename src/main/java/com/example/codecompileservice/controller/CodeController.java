@@ -26,13 +26,13 @@ public class CodeController implements CodeControllerDocs{
     }
 
     @PostMapping("/code/compile")
-    public BaseResponse<CodeCompileOutput> compileCode(@RequestBody CodeCompileInput codeCompileInput) throws Exception {
-        return codeService.codeCompile(codeCompileInput);
+    public BaseResponse<CodeCompileOutput> compileCode(@RequestHeader String userId, @RequestBody CodeCompileInput codeCompileInput) throws Exception {
+        return codeService.codeCompile(userId, codeCompileInput);
     }
 
     @PostMapping("/code/submit")
-    public BaseResponse<CodeSubmitOutput> submitCode(@RequestBody CodeCompileInput codeCompileInput) throws Exception {
-        return codeService.codeSubmit(codeCompileInput);
+    public BaseResponse<CodeSubmitOutput> submitCode(@RequestHeader String userId, @RequestBody CodeCompileInput codeCompileInput) throws Exception {
+        return codeService.codeSubmit(userId, codeCompileInput);
     }
 
     @DeleteMapping("/code/submit/{id}")
