@@ -225,10 +225,9 @@ public class CodeExecutor {
 
     private void deleteFile(String filename, Language language) {
         new File(filename + language.getExtension()).delete();
+        new File(filename).delete();
         if (language == JAVA) {
             new File(filename + ".class").delete();
-        } else if (language == C || language == C_PLUS_PLUS || language == GO) {
-            new File(filename).delete();
         } else if (language == KOTLIN) {
             new File(filename + ".jar").delete();
         }
