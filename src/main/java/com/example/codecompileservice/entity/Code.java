@@ -30,4 +30,8 @@ public class Code {
         }
         return true;
     }
+
+    public void update(List<Testcase> testcases) {
+        this.testcases = testcases;
+    }
 }

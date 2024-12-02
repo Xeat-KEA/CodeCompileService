@@ -1,14 +1,21 @@
 package com.example.codecompileservice.service;
 
-import com.example.codecompileservice.dto.*;
+import com.example.codecompileservice.dto.CodeCompileInput;
+import com.example.codecompileservice.dto.CodeCompileOutput;
+import com.example.codecompileservice.dto.CodeHistoryDto;
+import com.example.codecompileservice.dto.CodeSubmitOutput;
 import com.example.codecompileservice.entity.Code;
+import com.example.codecompileservice.entity.Testcase;
 import com.example.codecompileservice.global.BaseResponse;
 import com.example.codecompileservice.repository.CodeRepository;
-import com.example.codecompileservice.util.*;
+import com.example.codecompileservice.util.CodeExecutor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Base64;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -45,5 +52,16 @@ public class CodeService {
     public BaseResponse<Integer> codeRemove(Integer id) {
         codeRepository.findById(id).ifPresent(codeRepository::delete);
         return BaseResponse.success(id);
+    }
+
+    @Transactional
+    public BaseResponse<Code> codeUpdate(Integer id, List<Testcase> testcases) {
+        Code code = codeRepository.findById(id).get();
+        if (code != null) {
+            code.update(testcases);
+            return BaseResponse.success(code);
+        } else {
+            throw new NoSuchElementException();
+        }
     }
 }

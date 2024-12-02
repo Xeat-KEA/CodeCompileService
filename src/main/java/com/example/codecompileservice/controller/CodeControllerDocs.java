@@ -3,6 +3,7 @@ package com.example.codecompileservice.controller;
 import com.example.codecompileservice.dto.CodeCompileInput;
 import com.example.codecompileservice.dto.CodeCompileOutput;
 import com.example.codecompileservice.dto.CodeSubmitOutput;
+import com.example.codecompileservice.dto.CodeUpdateInput;
 import com.example.codecompileservice.entity.Code;
 import com.example.codecompileservice.global.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,6 +41,9 @@ public interface CodeControllerDocs {
 
     @Operation(summary = "문제 조회", description = "id는 1, 2, 3, 4, 5, ...")
     BaseResponse<Code> findCode(@PathVariable Integer id);
+
+    @Operation(summary = "문제 수정", description = "테스트케이스 형식은 문제 저장과 같음")
+    BaseResponse<Code> updateCode(@PathVariable Integer id, @RequestBody CodeUpdateInput codeUpdateInput);
 
     @Operation(summary = "코드 실행", description = "실행하면 출력 결과 리턴")
     @ApiResponse(responseCode = "200", description = "코드 정상 실행 또는 런타임 에러. runtime이 0이면 에러 발생한 테스트케이스 ", content = @Content(examples = @ExampleObject("""
