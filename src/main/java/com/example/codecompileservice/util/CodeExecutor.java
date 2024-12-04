@@ -8,20 +8,24 @@ import org.springframework.stereotype.Component;
 
 import javax.tools.ToolProvider;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import static com.example.codecompileservice.util.Language.*;
-import static java.nio.charset.StandardCharsets.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Component
 @Slf4j
 public class CodeExecutor {
+    public static final String MAIN = "/Main";
     public CodeCompileResult execute(String code, Language language, List<Testcase> testcases, Boolean submit) throws IOException, CompileException, InterruptedException {
-        String filename = "M" + UUID.randomUUID().toString().replace("-", "");
-        ProcessBuilder processBuilder = compileCode(code, language, filename);
+        File tempFolder = Files.createTempDirectory("tempFolder_").toFile();
+        tempFolder.setReadable(true, true);
+        tempFolder.setWritable(true, true);
+        tempFolder.setExecutable(true, true);
+        ProcessBuilder processBuilder = compileCode(code, language, tempFolder);
         // 입력을 프로세스의 System.in으로 전달
         List<String> output = Collections.synchronizedList(new ArrayList<>());
         List<Long> runtimes = Collections.synchronizedList(new ArrayList<>());
@@ -78,11 +82,12 @@ public class CodeExecutor {
             }
         });
         log.info("총 걸린 코드 실행 시간{}", System.currentTimeMillis() - totaltime);
-        deleteFile(filename, language);
+        deleteFile(tempFolder);
         return new CodeCompileResult(runtimes, output);  // 프로세스의 출력 반환
     }
 
-    private ProcessBuilder compileCode(String code, Language language, String filename) throws IOException, InterruptedException {
+    private ProcessBuilder compileCode(String code, Language language, File tempFolder) throws IOException, InterruptedException {
+        String filename = tempFolder + MAIN;
         String line;
         StringBuilder stringBuilder = new StringBuilder();
         long totaltime = System.currentTimeMillis();
@@ -97,7 +102,7 @@ public class CodeExecutor {
                 }
                 // 컴파일
                 if (ToolProvider.getSystemJavaCompiler().run(null, outStream, errStream, filename + JAVA.getExtension()) != 0) {
-                    deleteFile(filename, language);
+                    deleteFile(tempFolder);
                     throw new CompileException(outStream.toString(UTF_8) + "\n" + errStream.toString(UTF_8));
                 }
                 log.info("총 걸린 코드 컴파일 시간{}", System.currentTimeMillis() - totaltime);
@@ -108,7 +113,7 @@ public class CodeExecutor {
                 try (FileWriter writer = new FileWriter(filename + JAVASCRIPT.getExtension())) {
                     writer.write(code);
                 }
-                ProcessBuilder nodeProcessBuilder = new ProcessBuilder("pkg", filename + JAVASCRIPT.getExtension(), "--targets", "node12-linux-x64");
+                ProcessBuilder nodeProcessBuilder = new ProcessBuilder("pkg", filename + JAVASCRIPT.getExtension(), "--targets", "node16-linux-x64");
                 Process nodeProcess = nodeProcessBuilder.start();
                 try (BufferedReader errorReader = nodeProcess.errorReader()) {
                     if (errorReader.readLine() != null) {
@@ -135,7 +140,7 @@ public class CodeExecutor {
                         while ((line = errorReader.readLine()) != null) {
                             stringBuilder.append(line).append("\n");
                         }
-                        deleteFile(filename, language);
+                        deleteFile(tempFolder);
                         throw new CompileException(stringBuilder.toString());
                     }
                 }
@@ -154,7 +159,7 @@ public class CodeExecutor {
                         while ((line = errorReader.readLine()) != null) {
                             stringBuilder.append(line).append("\n");
                         }
-                        deleteFile(filename, language);
+                        deleteFile(tempFolder);
                         throw new CompileException(stringBuilder.toString());
                     }
                 }
@@ -173,7 +178,7 @@ public class CodeExecutor {
                         while ((line = errorReader.readLine()) != null) {
                             stringBuilder.append(line).append("\n");
                         }
-                        deleteFile(filename, language);
+                        deleteFile(tempFolder);
                         throw new CompileException(stringBuilder.toString());
                     }
                 }
@@ -192,7 +197,7 @@ public class CodeExecutor {
                         while ((line = errorReader.readLine()) != null) {
                             stringBuilder.append(line).append("\n");
                         }
-                        deleteFile(filename, language);
+                        deleteFile(tempFolder);
                         throw new CompileException(stringBuilder.toString());
                     }
                 }
@@ -211,7 +216,7 @@ public class CodeExecutor {
                         while ((line = errorReader.readLine()) != null) {
                             stringBuilder.append(line).append("\n");
                         }
-                        deleteFile(filename, language);
+                        deleteFile(tempFolder);
                         throw new CompileException(stringBuilder.toString());
                     }
                 }
@@ -223,13 +228,20 @@ public class CodeExecutor {
         }
     }
 
-    private void deleteFile(String filename, Language language) {
-        new File(filename + language.getExtension()).delete();
-        new File(filename).delete();
-        if (language == JAVA) {
-            new File(filename + ".class").delete();
-        } else if (language == KOTLIN) {
-            new File(filename + ".jar").delete();
+    private void deleteFile(File tempDir) {
+        for (File file : tempDir.listFiles()) {
+            file.delete();
         }
+        tempDir.delete();
     }
+//    private void deleteFile(String filename, Language language) {
+//        new File(filename + language.getExtension()).delete();
+//        new File(filename).delete();
+//        if (language == JAVA) {
+//            new File(filename + ".class").delete();
+//        } else if (language == KOTLIN) {
+//            new File(filename + ".jar").delete();
+//        }
+//    }
+
 }
