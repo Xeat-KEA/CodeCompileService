@@ -48,12 +48,12 @@ public class CodeExecutor {
                      BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                     String line;
                     while ((line = processOutputReader.readLine()) != null) {
-//                        if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
-//                            output.add("출력 초과");
-//                            runtimes.add(0L);
-//                            process.destroy();
-//                            return;
-//                        }
+                        if (testcase.getOutput().length() * 2 < stringBuilder.length()) {
+                            output.add("출력 초과");
+                            runtimes.add(0L);
+                            process.destroy();
+                            return;
+                        }
                         stringBuilder.append(line).append("\n");
                     }
                     time = System.currentTimeMillis() - time;
