@@ -10,6 +10,7 @@ import com.example.codecompileservice.global.BaseResponse;
 import com.example.codecompileservice.repository.CodeRepository;
 import com.example.codecompileservice.util.CodeExecutor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CodeService {
     private final CodeRepository codeRepository;
     private final CodeExecutor codeExecutor;
@@ -34,7 +36,9 @@ public class CodeService {
 
     public BaseResponse<CodeCompileOutput> codeCompile(String userId, CodeCompileInput codeCompileInput) throws Exception {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
-        codeBankServiceClient.updateHistory(new CodeHistoryDto(codeCompileInput.getCodeId(), userId, codeCompileInput.getCode(), false));
+        CodeHistoryDto codeHistoryDto = new CodeHistoryDto(codeCompileInput.getCodeId(), userId, codeCompileInput.getCode(), false);
+        log.info(codeHistoryDto.toString());
+        codeBankServiceClient.updateHistory(codeHistoryDto);
         return BaseResponse.success(new CodeCompileOutput(codeExecutor
                 .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases(), false),
                 code.getTestcases()));

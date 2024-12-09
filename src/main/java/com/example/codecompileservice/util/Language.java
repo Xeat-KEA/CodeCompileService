@@ -11,7 +11,7 @@ public enum Language {
     C(".c"),
     C_PLUS_PLUS(".cpp"),
     KOTLIN(".kt"),
-    GO(".go"),;
+    GO(".go");
 
     private final String extension;
 
