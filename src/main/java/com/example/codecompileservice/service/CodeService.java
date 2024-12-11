@@ -44,10 +44,17 @@ public class CodeService {
 
     public BaseResponse<CodeSubmitOutput> codeSubmit(String userId, CodeCompileInput codeCompileInput) throws Exception {
         Code code = codeRepository.findById(codeCompileInput.getCodeId()).get();
-        CodeSubmitOutput codeSubmitOutput = new CodeSubmitOutput(code.grade(codeExecutor
-                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases(), true).getResult()));
-        codeBankServiceClient.updateHistoryAndSendPoint(new CodeHistoryDto(codeCompileInput.getCodeId(), userId, codeCompileInput.getCode(), codeSubmitOutput.getIsCorrect()));
-
+        CodeSubmitOutput codeSubmitOutput = new CodeSubmitOutput(codeExecutor
+                .execute(new String(Base64.getDecoder().decode(codeCompileInput.getCode())), codeCompileInput.getLanguage(), code.getTestcases(), true), code);
+        for (int i = 0; i < codeSubmitOutput.getResult().size(); i++) {
+            if (!codeSubmitOutput.getResult().get(i).getResult()) {
+                codeBankServiceClient
+                        .updateHistoryAndSendPoint(new CodeHistoryDto(codeCompileInput.getCodeId(), userId, codeCompileInput.getCode(), false));
+                return BaseResponse.success(codeSubmitOutput);
+            }
+        }
+        codeBankServiceClient
+                .updateHistoryAndSendPoint(new CodeHistoryDto(codeCompileInput.getCodeId(), userId, codeCompileInput.getCode(), true));
         return BaseResponse.success(codeSubmitOutput);
     }
 

@@ -22,14 +22,14 @@ public class Code {
     @Column(columnDefinition = "json")
     private List<Testcase> testcases;
 
-    public Boolean grade(List<String> output) {
-        for (int i = 0; i < output.size(); i++) {
-            if (!output.get(i).equals(testcases.get(i).getOutput())) {
-                return false;
-            }
-        }
-        return true;
-    }
+//    public Boolean grade(List<String> output) {
+//        for (int i = 0; i < output.size(); i++) {
+//            if (!output.get(i).equals(testcases.get(i).getOutput())) {
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
 
     public void update(List<Testcase> testcases) {
         this.testcases = testcases;
