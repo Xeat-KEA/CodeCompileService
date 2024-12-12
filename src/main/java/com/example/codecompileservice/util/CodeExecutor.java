@@ -27,9 +27,9 @@ public class CodeExecutor {
         List<Long> runtimes = Collections.synchronizedList(new ArrayList<>());
         long testcaseCount;// 실행할 테스트케이스 개수
         if (submit) {
-            testcaseCount = 3;
+            testcaseCount = testcases.size();
         } else {
-            testcaseCount = testcases.size(); // 나중에 3정도로 변경
+            testcaseCount = 3; // 나중에 3정도로 변경
         }
 
         long totaltime = System.currentTimeMillis();
