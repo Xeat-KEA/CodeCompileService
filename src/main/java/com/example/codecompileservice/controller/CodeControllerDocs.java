@@ -69,7 +69,7 @@ public interface CodeControllerDocs {
             }""")))
     BaseResponse<CodeCompileOutput> compileCode(@RequestHeader String userId, @RequestBody CodeCompileInput codeCompileInput) throws Exception;
 
-    @Operation(summary = "코드 제출", description = "정답인지 아닌지 리턴")
+    @Operation(summary = "코드 제출", description = "테스트케이스마다 런타임, 정답여부 리턴")
     BaseResponse<CodeSubmitOutput> submitCode(@RequestHeader String userId, @RequestBody CodeCompileInput codeCompileInput) throws Exception;
 
     @Operation(summary = "문제 삭제")
