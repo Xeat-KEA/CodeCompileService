@@ -41,7 +41,7 @@ public class CodeController implements CodeControllerDocs{
         return codeService.codeSubmit(userId, codeCompileInput);
     }
 
-    @DeleteMapping("/code/submit/{id}")
+    @DeleteMapping("/code/{id}")
     public BaseResponse<Integer> removeCode(@PathVariable Integer id) {
         return codeService.codeRemove(id);
     }
