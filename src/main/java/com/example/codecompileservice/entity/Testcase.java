@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class Testcase {
-    private final String input;
-    private final String output;
+    private String input;
+    private String output;
 }

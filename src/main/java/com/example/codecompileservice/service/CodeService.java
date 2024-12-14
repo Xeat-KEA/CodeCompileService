@@ -27,6 +27,7 @@ public class CodeService {
     private final CodeBankServiceClient codeBankServiceClient;
 
     public BaseResponse<Code> codeSave(Code code) {
+        code.stripTestcases();
         return BaseResponse.success(codeRepository.save(code));
     }
 

@@ -34,4 +34,12 @@ public class Code {
     public void update(List<Testcase> testcases) {
         this.testcases = testcases;
     }
+
+    public void stripTestcases() {
+        this.testcases.forEach(testcase -> {
+            testcase.setInput(testcase.getInput().strip());
+            testcase.setOutput(testcase.getOutput().strip());
+        });
+    }
+
 }
